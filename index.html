@@ -74,6 +74,11 @@ header.top.hero .hero-edge{position:absolute;left:0;right:0;bottom:-1px;width:10
 
 .hero .hero-sdg{width:104px;height:104px;flex:none;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
 @media (max-width:1000px){.hero .hero-sdg{width:80px;height:80px}}
+
+@keyframes sdg-spin{to{transform:rotate(360deg)}}
+.hero .hero-sdg{animation:sdg-spin 20s linear infinite}
+.hero .hero-sdg:hover{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.hero .hero-sdg{animation:none}}
 </style>
 </head>
 <body>
