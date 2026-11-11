@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Eixos e ODS · PICAPS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&amp;family=Source+Sans+3:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+/* Layout: cabeçalho institucional, faixa de síntese, alternância Matriz/Fluxo à esquerda e painel de leitura fixo à direita (empilha no celular) */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunken:#E8EEEE; --line:#D3DCDC; --line-soft:#E3E9E9;
+  --fg:#17262A; --muted:#566A6E; --faint:#8A9B9E;
+  --accent:#0E6B6E; --accent-soft:#D6ECEC;
+  --empty:#C9D3D3;
+  --f-display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --cellA:0.92;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1719; --surface:#162226; --sunken:#1C2A2E; --line:#2B3B40; --line-soft:#223236;
+  --fg:#E4ECEC; --muted:#9DB0B3; --faint:#6E8285; --accent:#5CC3C3; --accent-soft:#183C3E; --empty:#33464A; --cellA:0.85; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1719; --surface:#162226; --sunken:#1C2A2E; --line:#2B3B40; --line-soft:#223236;
+  --fg:#E4ECEC; --muted:#9DB0B3; --faint:#6E8285; --accent:#5CC3C3; --accent-soft:#183C3E; --empty:#33464A; --cellA:0.85; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1320px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;border-bottom:1px solid var(--line);padding-bottom:18px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(24px,3.2vw,34px);font-weight:800;letter-spacing:-.01em;margin-top:6px}
+.lede{color:var(--muted);max-width:62ch;margin:6px 0 0}
+.compare{font-size:13.5px;color:var(--muted)}
+.compare a{color:var(--accent);font-weight:600}
+
+.stats{display:flex;flex-wrap:wrap;gap:8px 28px;margin:18px 0 20px;font-size:13.5px;color:var(--muted)}
+.stats b{font-family:var(--f-display);font-size:22px;color:var(--fg);font-weight:700;margin-right:6px;font-variant-numeric:tabular-nums}
+
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:14px}
+.tabs{display:inline-flex;background:var(--sunken);border-radius:8px;padding:3px}
+.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.search{flex:1 1 220px;max-width:340px;position:relative}
+.search input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit;font-size:14px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.hint{font-size:13px;color:var(--faint)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
+@media (max-width:1040px){.layout{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 18px 14px;min-width:0}
+.scroll{overflow-x:auto}
+
+/* Matriz */
+.matrix{display:grid;grid-template-columns:200px repeat(18,minmax(34px,1fr)) 52px;min-width:900px;font-variant-numeric:tabular-nums}
+.mh{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 1px 8px;cursor:pointer;border-radius:6px}
+.mh .sq{width:28px;height:28px;border-radius:4px;display:grid;place-items:center;color:#fff;font-family:var(--f-display);font-weight:700;font-size:13px}
+.mh .vl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11.5px;color:var(--muted);height:116px;text-align:left;white-space:nowrap}
+.mh:hover .vl,.mh.sel .vl{color:var(--fg)}
+.mh.sel{background:var(--sunken)}
+.corner{display:flex;align-items:flex-end;padding:0 10px 10px 0;font-size:12px;color:var(--faint)}
+.rl{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 0;cursor:pointer;border-radius:6px;min-height:52px}
+.rl .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.rl .t{font-weight:600;font-size:13.5px;line-height:1.25}
+.rl .c{font-family:var(--f-mono);font-size:11px;color:var(--faint);display:block}
+.rl:hover,.rl.sel{background:var(--sunken)}
+.cell{margin:2px;border-radius:4px;display:grid;place-items:center;font-weight:600;font-size:13.5px;cursor:pointer;position:relative;border:2px solid transparent;transition:transform .12s}
+.cell.z{cursor:default}
+.cell.z::after{content:"";width:4px;height:4px;border-radius:50%;background:var(--empty)}
+.cell:not(.z):hover{transform:scale(1.06)}
+.cell.sel{border-color:var(--fg)}
+.cell.dim{opacity:.18}
+.cell .m{position:absolute;top:1px;right:3px;font-size:9.5px;font-family:var(--f-mono);font-weight:500}
+.tot{display:grid;place-items:center;font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.foot{padding-top:10px;display:flex;flex-direction:column;align-items:center;gap:4px;border-top:1px solid var(--line-soft);margin-top:6px}
+.foot .pips{display:flex;flex-direction:column;gap:2px}
+.foot .pip{width:14px;height:4px;border-radius:2px}
+.foot .n{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.foot-l{padding-top:10px;border-top:1px solid var(--line-soft);margin-top:6px;font-size:12px;color:var(--muted);line-height:1.3;padding-right:10px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:14px;font-size:12.5px;color:var(--muted);align-items:center}
+.ramp{display:inline-flex;gap:2px;vertical-align:middle;margin:0 6px}
+.ramp i{width:16px;height:12px;border-radius:2px;display:block;background:var(--muted)}
+
+/* Fluxo */
+.flowbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:10px;font-size:13.5px;color:var(--muted)}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+svg.flow{display:block;width:100%;min-width:800px;height:auto}
+svg.flow text{fill:var(--fg);font-family:var(--f-body)}
+svg.flow .lbl-m{fill:var(--muted)}
+svg.flow .band{cursor:pointer;transition:opacity .15s}
+svg.flow .node{cursor:pointer}
+
+/* Painel */
+aside.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;position:sticky;top:max(12px,env(safe-area-inset-top,0px));max-height:calc(100vh - 24px);display:flex;flex-direction:column;min-width:0}
+@media (max-width:1040px){aside.panel{position:static;max-height:none}}
+.ph{padding:16px 18px 12px;border-bottom:1px solid var(--line-soft)}
+.ph .kick{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ph h2{font-size:19px;margin-top:6px;line-height:1.2}
+.ph .sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:4px;padding:2px 7px;color:#fff;font-weight:600;font-size:11px;letter-spacing:.03em}
+.reading{margin-top:10px;font-size:13.5px;background:var(--accent-soft);border-radius:6px;padding:8px 10px;color:var(--fg)}
+.pb{overflow-y:auto;padding:6px 18px 18px;min-width:0}
+.grp{margin-top:14px}
+.grp h3{font-size:12.5px;font-family:var(--f-mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.grp h3 .n{margin-left:auto;color:var(--faint)}
+.fat{border-top:1px solid var(--line-soft);padding:8px 0}
+.fat summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline}
+.fat summary::-webkit-details-marker{display:none}
+.fat .code{font-family:var(--f-mono);font-size:11px;color:var(--faint)}
+.fat .nm{font-weight:600;font-size:14px;line-height:1.3}
+.fat p{margin:6px 0 2px;color:var(--muted);font-size:13.5px;padding-left:calc(6ch + 10px)}
+.fat.hit .nm{background:linear-gradient(transparent 60%,var(--accent-soft) 60%)}
+.empty{color:var(--muted);font-size:14px;padding:16px 0}
+
+.findings{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.finding{border-top:2px solid var(--fg);padding-top:10px;font-size:14px;color:var(--muted)}
+.finding b{display:block;font-family:var(--f-display);color:var(--fg);font-size:15px;margin-bottom:4px}
+.finding button{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+footer.note{margin-top:28px;font-size:12.5px;color:var(--faint);max-width:90ch}
+
+#tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12.5px;padding:6px 9px;border-radius:5px;max-width:260px;z-index:20;line-height:1.35}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Cabeçalho e faixa de síntese (versão modernizada) */
+header.top{position:relative;overflow:hidden;align-items:center;gap:20px 40px;padding:28px 32px 26px;border:1px solid var(--line-soft);border-radius:18px;
+  background:radial-gradient(120% 140% at 100% 0%,var(--accent-soft) 0%,transparent 55%),var(--surface);
+  box-shadow:0 1px 2px rgba(15,40,45,.04),0 8px 24px -12px rgba(15,40,45,.12)}
+header.top::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),transparent)}
+header.top>div:first-child{flex:1 1 420px;min-width:0}
+h1{font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:-.02em;margin-top:0;max-width:24ch}
+.compare{align-self:center;display:flex;flex-direction:column;gap:6px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.compare a{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--fg);color:var(--surface);font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;text-decoration:none;transition:transform .15s,background .15s}
+.compare a:hover{background:var(--accent);transform:translateY(-1px)}
+@media (max-width:720px){
+  header.top{padding:22px 18px 20px;border-radius:14px}
+  .compare{align-self:flex-start}
+}
+.stats{display:grid;grid-template-columns:1.15fr .85fr 1fr 1.2fr;gap:0;margin:16px 0 22px;padding:0;background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(15,40,45,.04),0 8px 24px -14px rgba(15,40,45,.12)}
+.stats .kpi{display:flex;flex-direction:column;gap:12px;padding:18px 20px 16px;min-width:0;border-left:1px solid var(--line-soft)}
+.stats .kpi:first-child{border-left:0}
+.stats .kpi-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.stats .kpi-h b{font-family:var(--f-display);font-size:clamp(28px,3.2vw,38px);font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--fg);font-variant-numeric:tabular-nums;margin:0}
+.stats .kpi-h span{font-size:13px;line-height:1.25;color:var(--muted);max-width:18ch}
+.stats small{font-size:11px;color:var(--faint);margin-top:auto}
+.stats .kpi-bar{display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden}
+.stats .kpi-bar i{display:block;min-width:4px}
+.stats .kpi-dots{display:flex;flex-wrap:wrap;gap:6px}
+.stats .kpi-dots i,.stats .kpi-tiles i{display:grid;place-items:center;font-style:normal;font-family:var(--f-display);font-weight:700;color:#fff;cursor:default}
+.stats .kpi-dots i{width:24px;height:24px;border-radius:50%;font-size:11px}
+.stats .kpi-tiles{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}
+.stats .kpi-tiles i{aspect-ratio:1;border-radius:4px;font-size:9.5px}
+.stats .kpi-cols{position:relative;display:flex;align-items:flex-end;gap:3px;height:44px;padding-top:2px}
+.stats .kpi-cols i{flex:1;min-height:3px;border-radius:2px 2px 0 0;background:var(--empty);cursor:default}
+.stats .kpi-cols em{position:absolute;left:0;right:0;bottom:50%;border-top:1px dashed var(--faint);pointer-events:none}
+.stats .kpi-dots i:hover,.stats .kpi-tiles i:hover,.stats .kpi-cols i:hover{filter:brightness(1.12)}
+@media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.stats .kpi:nth-child(3){border-left:0}.stats .kpi:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+@media (max-width:520px){.stats{grid-template-columns:1fr}.stats .kpi{border-left:0}.stats .kpi+.kpi{border-top:1px solid var(--line-soft)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      
+      <h1>Relação dos fatores territoriais por Eixo Estratégico e ODS</h1>
+      
+    </div>
+    <div class="compare"><span>Versão atual</span><a href="https://fernandamachiner.github.io/fatores/" target="_blank" rel="noopener">Roda de eixos ↗</a></div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <div class="tabs" role="tablist" aria-label="Visualização">
+      <button role="tab" id="tab-matriz" aria-selected="true" data-v="matriz">Matriz</button>
+      <button role="tab" id="tab-fluxo" aria-selected="false" data-v="fluxo">Fluxo</button>
+    </div>
+    <label class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input id="q" type="search" placeholder="Buscar fator, ex.: água, crédito, gênero" aria-label="Buscar fator">
+    </label>
+    <span class="hint" id="qinfo"></span>
+  </div>
+
+  <div class="layout">
+    <section class="stage" aria-live="polite">
+      <div id="v-matriz">
+        <div class="scroll"><div class="matrix" id="matrix"><div class="corner">eixo ↓ · ODS →</div><div class="mh" data-ods="1" title="ODS 01 · Erradicação da pobreza"><span class="sq" style="background:#E5243B">1</span><span class="vl">Pobreza</span></div><div class="mh" data-ods="2" title="ODS 02 · Fome zero e agricultura sustentável"><span class="sq" style="background:#DDA63A">2</span><span class="vl">Fome zero</span></div><div class="mh" data-ods="3" title="ODS 03 · Saúde e bem-estar"><span class="sq" style="background:#4C9F38">3</span><span class="vl">Saúde</span></div><div class="mh" data-ods="4" title="ODS 04 · Educação de qualidade"><span class="sq" style="background:#C5192D">4</span><span class="vl">Educação</span></div><div class="mh" data-ods="5" title="ODS 05 · Igualdade de gênero"><span class="sq" style="background:#FF3A21">5</span><span class="vl">Gênero</span></div><div class="mh" data-ods="6" title="ODS 06 · Água potável e saneamento"><span class="sq" style="background:#26BDE2">6</span><span class="vl">Água e saneamento</span></div><div class="mh" data-ods="7" title="ODS 07 · Energia limpa e acessível"><span class="sq" style="background:#FCC30B">7</span><span class="vl">Energia</span></div><div class="mh" data-ods="8" title="ODS 08 · Trabalho decente e crescimento econômico"><span class="sq" style="background:#A21942">8</span><span class="vl">Trabalho decente</span></div><div class="mh" data-ods="9" title="ODS 09 · Indústria, inovação e infraestrutura"><span class="sq" style="background:#FD6925">9</span><span class="vl">Infraestrutura</span></div><div class="mh" data-ods="10" title="ODS 10 · Redução das desigualdades"><span class="sq" style="background:#DD1367">10</span><span class="vl">Desigualdades</span></div><div class="mh sel" data-ods="11" title="ODS 11 · Cidades e comunidades sustentáveis"><span class="sq" style="background:#FD9D24">11</span><span class="vl">Cidades</span></div><div class="mh" data-ods="12" title="ODS 12 · Consumo e produção responsáveis"><span class="sq" style="background:#BF8B2E">12</span><span class="vl">Consumo</span></div><div class="mh" data-ods="13" title="ODS 13 · Ação contra a mudança global do clima"><span class="sq" style="background:#3F7E44">13</span><span class="vl">Clima</span></div><div class="mh" data-ods="14" title="ODS 14 · Vida na água"><span class="sq" style="background:#0A97D9">14</span><span class="vl">Vida na água</span></div><div class="mh" data-ods="15" title="ODS 15 · Vida terrestre"><span class="sq" style="background:#56C02B">15</span><span class="vl">Vida terrestre</span></div><div class="mh" data-ods="16" title="ODS 16 · Paz, justiça e instituições eficazes"><span class="sq" style="background:#00689D">16</span><span class="vl">Instituições</span></div><div class="mh" data-ods="17" title="ODS 17 · Parcerias e meios de implementação"><span class="sq" style="background:#19486A">17</span><span class="vl">Parcerias</span></div><div class="mh" data-ods="18" title="ODS 18 · Igualdade étnico-racial"><span class="sq" style="background:#7A4E2D">18</span><span class="vl">Étnico-racial</span></div><div class="corner" style="justify-content:center;padding-right:0">total</div><div class="rl" data-ei="0"><span class="dot" style="background:#F0871E"></span><span><span class="c">EIXO 1</span><span class="t">O Suor que não nos Sustenta</span></span></div><div class="cell" data-ei="0" data-ods="1" style="background:#F0871E36;color:var(--fg)" title="Eixo 1 × ODS 01: 1 fator">1</div><div class="cell" data-ei="0" data-ods="2" style="background:#F0871E63;color:var(--fg)" title="Eixo 1 × ODS 02: 5 fatores">5</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="0" data-ods="5" style="background:#F0871E36;color:var(--fg)" title="Eixo 1 × ODS 05: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="0" data-ods="8" style="background:#F0871Ec9;color:#fff" title="Eixo 1 × ODS 08: 14 fatores">14</div><div class="cell" data-ei="0" data-ods="9" style="background:#F0871E4c;color:var(--fg)" title="Eixo 1 × ODS 09: 3 fatores">3</div><div class="cell" data-ei="0" data-ods="10" style="background:#F0871E41;color:var(--fg)" title="Eixo 1 × ODS 10: 2 fatores">2</div><div class="cell z"></div><div class="cell" data-ei="0" data-ods="12" style="background:#F0871E41;color:var(--fg)" title="Eixo 1 × ODS 12: 2 fatores">2</div><div class="cell" data-ei="0" data-ods="13" style="background:#F0871E36;color:var(--fg)" title="Eixo 1 × ODS 13: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="tot">29</div><div class="rl" data-ei="1"><span class="dot" style="background:#E2211C"></span><span><span class="c">EIXO 2</span><span class="t">A Vida em Risco</span></span></div><div class="cell z"></div><div class="cell" data-ei="1" data-ods="2" style="background:#E2211C36;color:var(--fg)" title="Eixo 2 × ODS 02: 1 fator">1</div><div class="cell" data-ei="1" data-ods="3" style="background:#E2211Ceb;color:#fff" title="Eixo 2 × ODS 03: 17 fatores">17</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="1" data-ods="6" style="background:#E2211C63;color:var(--fg)" title="Eixo 2 × ODS 06: 5 fatores">5</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="1" data-ods="11" style="background:#E2211C57;color:var(--fg)" title="Eixo 2 × ODS 11: 4 fatores">4</div><div class="cell z"></div><div class="cell" data-ei="1" data-ods="13" style="background:#E2211Ca7;color:#fff" title="Eixo 2 × ODS 13: 11 fatores">11</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="tot">38</div><div class="rl" data-ei="2"><span class="dot" style="background:#7A2C8E"></span><span><span class="c">EIXO 3</span><span class="t">Nossos Corpos Silenciados</span></span></div><div class="cell" data-ei="2" data-ods="1" style="background:#7A2C8E36;color:var(--fg)" title="Eixo 3 × ODS 01: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="2" data-ods="5" style="background:#7A2C8E63;color:var(--fg)" title="Eixo 3 × ODS 05: 5 fatores">5</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="2" data-ods="8" style="background:#7A2C8E41;color:var(--fg)" title="Eixo 3 × ODS 08: 2 fatores">2</div><div class="cell z"></div><div class="cell" data-ei="2" data-ods="10" style="background:#7A2C8E6e;color:var(--fg)" title="Eixo 3 × ODS 10: 6 fatores">6</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="2" data-ods="18" style="background:#7A2C8E57;color:var(--fg)" title="Eixo 3 × ODS 18: 4 fatores">4</div><div class="tot">18</div><div class="rl" data-ei="3"><span class="dot" style="background:#4C9F38"></span><span><span class="c">EIXO 4</span><span class="t">A Terra de Quem?</span></span></div><div class="cell" data-ei="3" data-ods="1" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 01: 1 fator">1</div><div class="cell" data-ei="3" data-ods="2" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 02: 1 fator">1</div><div class="cell" data-ei="3" data-ods="3" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 03: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="3" data-ods="6" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 06: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="3" data-ods="9" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 09: 1 fator">1</div><div class="cell z"></div><div class="cell" data-ei="3" data-ods="11" style="background:#4C9F3841;color:var(--fg)" title="Eixo 4 × ODS 11: 2 fatores">2</div><div class="cell" data-ei="3" data-ods="12" style="background:#4C9F384c;color:var(--fg)" title="Eixo 4 × ODS 12: 3 fatores">3</div><div class="cell" data-ei="3" data-ods="13" style="background:#4C9F3841;color:var(--fg)" title="Eixo 4 × ODS 13: 2 fatores">2</div><div class="cell" data-ei="3" data-ods="14" style="background:#4C9F384c;color:var(--fg)" title="Eixo 4 × ODS 14: 3 fatores">3</div><div class="cell" data-ei="3" data-ods="15" style="background:#4C9F3885;color:#fff" title="Eixo 4 × ODS 15: 8 fatores">8</div><div class="cell z"></div><div class="cell" data-ei="3" data-ods="17" style="background:#4C9F3836;color:var(--fg)" title="Eixo 4 × ODS 17: 1 fator">1</div><div class="cell z"></div><div class="tot">24</div><div class="rl" data-ei="4"><span class="dot" style="background:#1868A8"></span><span><span class="c">EIXO 5</span><span class="t">A Cidade Negada</span></span></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="4" data-ods="3" style="background:#1868A841;color:var(--fg)" title="Eixo 5 × ODS 03: 2 fatores">2</div><div class="cell" data-ei="4" data-ods="4" style="background:#1868A885;color:#fff" title="Eixo 5 × ODS 04: 8 fatores">8</div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="4" data-ods="7" style="background:#1868A841;color:var(--fg)" title="Eixo 5 × ODS 07: 2 fatores">2</div><div class="cell" data-ei="4" data-ods="8" style="background:#1868A857;color:var(--fg)" title="Eixo 5 × ODS 08: 4 fatores">4</div><div class="cell" data-ei="4" data-ods="9" style="background:#1868A84c;color:var(--fg)" title="Eixo 5 × ODS 09: 3 fatores">3</div><div class="cell z"></div><div class="cell" data-ei="4" data-ods="11" style="background:#1868A885;color:#fff" title="Eixo 5 × ODS 11: 8 fatores">8</div><div class="cell" data-ei="4" data-ods="12" style="background:#1868A836;color:var(--fg)" title="Eixo 5 × ODS 12: 1 fator">1</div><div class="cell" data-ei="4" data-ods="13" style="background:#1868A836;color:var(--fg)" title="Eixo 5 × ODS 13: 1 fator">1</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="tot">29</div><div class="rl" data-ei="5"><span class="dot" style="background:#158A8A"></span><span><span class="c">EIXO 6</span><span class="t">A Voz na Mesa</span></span></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="5" data-ods="11" style="background:#158A8A6e;color:var(--fg)" title="Eixo 6 × ODS 11: 6 fatores">6</div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell z"></div><div class="cell" data-ei="5" data-ods="16" style="background:#158A8A57;color:var(--fg)" title="Eixo 6 × ODS 16: 4 fatores">4</div><div class="cell" data-ei="5" data-ods="17" style="background:#158A8A41;color:var(--fg)" title="Eixo 6 × ODS 17: 2 fatores">2</div><div class="cell z"></div><div class="tot">12</div><div class="foot-l">Eixos que mobilizam o ODS</div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#7A2C8E"></span><span class="pip" style="background:#4C9F38"></span></span></div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#E2211C"></span><span class="pip" style="background:#4C9F38"></span></span></div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#E2211C"></span><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">2</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#7A2C8E"></span></span></div><div class="foot"><span class="n">2</span><span class="pips"><span class="pip" style="background:#E2211C"></span><span class="pip" style="background:#4C9F38"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#7A2C8E"></span><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">2</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#7A2C8E"></span></span></div><div class="foot"><span class="n">4</span><span class="pips"><span class="pip" style="background:#E2211C"></span><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#1868A8"></span><span class="pip" style="background:#158A8A"></span></span></div><div class="foot"><span class="n">3</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">4</span><span class="pips"><span class="pip" style="background:#F0871E"></span><span class="pip" style="background:#E2211C"></span><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#1868A8"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#4C9F38"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#4C9F38"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#158A8A"></span></span></div><div class="foot"><span class="n">2</span><span class="pips"><span class="pip" style="background:#4C9F38"></span><span class="pip" style="background:#158A8A"></span></span></div><div class="foot"><span class="n">1</span><span class="pips"><span class="pip" style="background:#7A2C8E"></span></span></div><div class="foot" style="justify-content:flex-start"><span class="n">150</span></div></div></div>
+        <div class="legend">
+          <span>Intensidade da célula proporcional ao número de fatores <span class="ramp" id="ramp"><i style="opacity:0.2"></i><i style="opacity:0.4"></i><i style="opacity:0.6"></i><i style="opacity:0.8"></i><i style="opacity:1"></i></span></span>
+          <span>Barras no rodapé: eixos que convergem no ODS</span>
+        </div>
+      </div>
+      <div id="v-fluxo" hidden="">
+        <div class="flowbar" id="flowbar"><span>Detalhar eixo:</span><button class="chip" aria-pressed="true" data-fe="-1">Visão geral</button><button class="chip" aria-pressed="false" data-fe="0"><span class="dot" style="background:#F0871E"></span>Eixo 1</button><button class="chip" aria-pressed="false" data-fe="1"><span class="dot" style="background:#E2211C"></span>Eixo 2</button><button class="chip" aria-pressed="false" data-fe="2"><span class="dot" style="background:#7A2C8E"></span>Eixo 3</button><button class="chip" aria-pressed="false" data-fe="3"><span class="dot" style="background:#4C9F38"></span>Eixo 4</button><button class="chip" aria-pressed="false" data-fe="4"><span class="dot" style="background:#1868A8"></span>Eixo 5</button><button class="chip" aria-pressed="false" data-fe="5"><span class="dot" style="background:#158A8A"></span>Eixo 6</button></div>
+        <div class="scroll"><svg class="flow" id="flow" role="img" aria-label="Diagrama de fluxo entre eixos e ODS" viewBox="0 0 960 685.9999999999998"><path class="band" d="M252,30.99999999999983 C501,30.99999999999983 501,10 750,10 L750,13.6 C501,13.6 501,34.59999999999983 252,34.59999999999983 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="1" data-tip="Eixo 1 → ODS 01 · 1 fator"></path><path class="band" d="M252,34.59999999999983 C501,34.59999999999983 501,27.8 750,27.8 L750,45.8 C501,45.8 501,52.59999999999983 252,52.59999999999983 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="2" data-tip="Eixo 1 → ODS 02 · 5 fatores"></path><path class="band" d="M252,52.59999999999983 C501,52.59999999999983 501,174.8 750,174.8 L750,178.4 C501,178.4 501,56.19999999999983 252,56.19999999999983 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="5" data-tip="Eixo 1 → ODS 05 · 1 fator"></path><path class="band" d="M252,56.19999999999983 C501,56.19999999999983 501,246.2 750,246.2 L750,296.59999999999997 C501,296.59999999999997 501,106.59999999999982 252,106.59999999999982 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="8" data-tip="Eixo 1 → ODS 08 · 14 fatores"></path><path class="band" d="M252,106.59999999999982 C501,106.59999999999982 501,325.2 750,325.2 L750,336 C501,336 501,117.39999999999982 252,117.39999999999982 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="9" data-tip="Eixo 1 → ODS 09 · 3 fatores"></path><path class="band" d="M252,117.39999999999982 C501,117.39999999999982 501,357.4 750,357.4 L750,364.59999999999997 C501,364.59999999999997 501,124.59999999999982 252,124.59999999999982 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="10" data-tip="Eixo 1 → ODS 10 · 2 fatores"></path><path class="band" d="M252,124.59999999999982 C501,124.59999999999982 501,472.2 750,472.2 L750,479.4 C501,479.4 501,131.7999999999998 252,131.7999999999998 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="12" data-tip="Eixo 1 → ODS 12 · 2 fatores"></path><path class="band" d="M252,131.79999999999984 C501,131.79999999999984 501,500.8 750,500.8 L750,504.40000000000003 C501,504.40000000000003 501,135.39999999999984 252,135.39999999999984 Z" fill="#F0871E" fill-opacity="0.08" data-ei="0" data-ods="13" data-tip="Eixo 1 → ODS 13 · 1 fator"></path><path class="band" d="M252,149.39999999999984 C501,149.39999999999984 501,45.8 750,45.8 L750,49.4 C501,49.4 501,152.99999999999983 252,152.99999999999983 Z" fill="#E2211C" fill-opacity="0.08" data-ei="1" data-ods="2" data-tip="Eixo 2 → ODS 02 · 1 fator"></path><path class="band" d="M252,152.99999999999983 C501,152.99999999999983 501,60 750,60 L750,121.2 C501,121.2 501,214.19999999999982 252,214.19999999999982 Z" fill="#E2211C" fill-opacity="0.08" data-ei="1" data-ods="3" data-tip="Eixo 2 → ODS 03 · 17 fatores"></path><path class="band" d="M252,214.19999999999982 C501,214.19999999999982 501,203.4 750,203.4 L750,221.4 C501,221.4 501,232.19999999999982 252,232.19999999999982 Z" fill="#E2211C" fill-opacity="0.08" data-ei="1" data-ods="6" data-tip="Eixo 2 → ODS 06 · 5 fatores"></path><path class="band" d="M252,232.19999999999982 C501,232.19999999999982 501,393.2 750,393.2 L750,407.59999999999997 C501,407.59999999999997 501,246.59999999999982 252,246.59999999999982 Z" fill="#E2211C" fill-opacity="0.72" data-ei="1" data-ods="11" data-tip="Eixo 2 → ODS 11 · 4 fatores"></path><path class="band" d="M252,246.59999999999985 C501,246.59999999999985 501,504.40000000000003 750,504.40000000000003 L750,544 C501,544 501,286.1999999999999 252,286.1999999999999 Z" fill="#E2211C" fill-opacity="0.08" data-ei="1" data-ods="13" data-tip="Eixo 2 → ODS 13 · 11 fatores"></path><path class="band" d="M252,300.1999999999999 C501,300.1999999999999 501,13.6 750,13.6 L750,17.2 C501,17.2 501,303.7999999999999 252,303.7999999999999 Z" fill="#7A2C8E" fill-opacity="0.08" data-ei="2" data-ods="1" data-tip="Eixo 3 → ODS 01 · 1 fator"></path><path class="band" d="M252,303.7999999999999 C501,303.7999999999999 501,178.4 750,178.4 L750,196.4 C501,196.4 501,321.7999999999999 252,321.7999999999999 Z" fill="#7A2C8E" fill-opacity="0.08" data-ei="2" data-ods="5" data-tip="Eixo 3 → ODS 05 · 5 fatores"></path><path class="band" d="M252,321.7999999999999 C501,321.7999999999999 501,296.59999999999997 750,296.59999999999997 L750,303.79999999999995 C501,303.79999999999995 501,328.9999999999999 252,328.9999999999999 Z" fill="#7A2C8E" fill-opacity="0.08" data-ei="2" data-ods="8" data-tip="Eixo 3 → ODS 08 · 2 fatores"></path><path class="band" d="M252,328.9999999999999 C501,328.9999999999999 501,364.59999999999997 750,364.59999999999997 L750,386.2 C501,386.2 501,350.5999999999999 252,350.5999999999999 Z" fill="#7A2C8E" fill-opacity="0.08" data-ei="2" data-ods="10" data-tip="Eixo 3 → ODS 10 · 6 fatores"></path><path class="band" d="M252,350.59999999999985 C501,350.59999999999985 501,654.5999999999998 750,654.5999999999998 L750,668.9999999999998 C501,668.9999999999998 501,364.99999999999983 252,364.99999999999983 Z" fill="#7A2C8E" fill-opacity="0.08" data-ei="2" data-ods="18" data-tip="Eixo 3 → ODS 18 · 4 fatores"></path><path class="band" d="M252,378.9999999999999 C501,378.9999999999999 501,17.2 750,17.2 L750,20.8 C501,20.8 501,382.5999999999999 252,382.5999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="1" data-tip="Eixo 4 → ODS 01 · 1 fator"></path><path class="band" d="M252,382.5999999999999 C501,382.5999999999999 501,49.400000000000006 750,49.400000000000006 L750,53.00000000000001 C501,53.00000000000001 501,386.19999999999993 252,386.19999999999993 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="2" data-tip="Eixo 4 → ODS 02 · 1 fator"></path><path class="band" d="M252,386.1999999999999 C501,386.1999999999999 501,121.2 750,121.2 L750,124.8 C501,124.8 501,389.7999999999999 252,389.7999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="3" data-tip="Eixo 4 → ODS 03 · 1 fator"></path><path class="band" d="M252,389.7999999999999 C501,389.7999999999999 501,221.4 750,221.4 L750,225 C501,225 501,393.3999999999999 252,393.3999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="6" data-tip="Eixo 4 → ODS 06 · 1 fator"></path><path class="band" d="M252,393.39999999999986 C501,393.39999999999986 501,336 750,336 L750,339.6 C501,339.6 501,396.9999999999999 252,396.9999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="9" data-tip="Eixo 4 → ODS 09 · 1 fator"></path><path class="band" d="M252,396.9999999999999 C501,396.9999999999999 501,407.59999999999997 750,407.59999999999997 L750,414.79999999999995 C501,414.79999999999995 501,404.1999999999999 252,404.1999999999999 Z" fill="#4C9F38" fill-opacity="0.72" data-ei="3" data-ods="11" data-tip="Eixo 4 → ODS 11 · 2 fatores"></path><path class="band" d="M252,404.1999999999999 C501,404.1999999999999 501,479.4 750,479.4 L750,490.2 C501,490.2 501,414.9999999999999 252,414.9999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="12" data-tip="Eixo 4 → ODS 12 · 3 fatores"></path><path class="band" d="M252,414.9999999999999 C501,414.9999999999999 501,544 750,544 L750,551.2 C501,551.2 501,422.1999999999999 252,422.1999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="13" data-tip="Eixo 4 → ODS 13 · 2 fatores"></path><path class="band" d="M252,422.1999999999999 C501,422.1999999999999 501,561.8 750,561.8 L750,572.5999999999999 C501,572.5999999999999 501,432.9999999999999 252,432.9999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="14" data-tip="Eixo 4 → ODS 14 · 3 fatores"></path><path class="band" d="M252,432.9999999999999 C501,432.9999999999999 501,579.5999999999999 750,579.5999999999999 L750,608.3999999999999 C501,608.3999999999999 501,461.7999999999999 252,461.7999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="15" data-tip="Eixo 4 → ODS 15 · 8 fatores"></path><path class="band" d="M252,461.7999999999999 C501,461.7999999999999 501,636.7999999999998 750,636.7999999999998 L750,640.3999999999999 C501,640.3999999999999 501,465.3999999999999 252,465.3999999999999 Z" fill="#4C9F38" fill-opacity="0.08" data-ei="3" data-ods="17" data-tip="Eixo 4 → ODS 17 · 1 fator"></path><path class="band" d="M252,479.3999999999999 C501,479.3999999999999 501,124.8 750,124.8 L750,132 C501,132 501,486.5999999999999 252,486.5999999999999 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="3" data-tip="Eixo 5 → ODS 03 · 2 fatores"></path><path class="band" d="M252,486.5999999999999 C501,486.5999999999999 501,139 750,139 L750,167.8 C501,167.8 501,515.3999999999999 252,515.3999999999999 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="4" data-tip="Eixo 5 → ODS 04 · 8 fatores"></path><path class="band" d="M252,515.3999999999999 C501,515.3999999999999 501,232 750,232 L750,239.2 C501,239.2 501,522.5999999999999 252,522.5999999999999 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="7" data-tip="Eixo 5 → ODS 07 · 2 fatores"></path><path class="band" d="M252,522.5999999999999 C501,522.5999999999999 501,303.8 750,303.8 L750,318.2 C501,318.2 501,536.9999999999999 252,536.9999999999999 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="8" data-tip="Eixo 5 → ODS 08 · 4 fatores"></path><path class="band" d="M252,537 C501,537 501,339.59999999999997 750,339.59999999999997 L750,350.4 C501,350.4 501,547.8 252,547.8 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="9" data-tip="Eixo 5 → ODS 09 · 3 fatores"></path><path class="band" d="M252,547.8 C501,547.8 501,414.8 750,414.8 L750,443.6 C501,443.6 501,576.5999999999999 252,576.5999999999999 Z" fill="#1868A8" fill-opacity="0.72" data-ei="4" data-ods="11" data-tip="Eixo 5 → ODS 11 · 8 fatores"></path><path class="band" d="M252,576.5999999999999 C501,576.5999999999999 501,490.2 750,490.2 L750,493.8 C501,493.8 501,580.1999999999999 252,580.1999999999999 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="12" data-tip="Eixo 5 → ODS 12 · 1 fator"></path><path class="band" d="M252,580.1999999999998 C501,580.1999999999998 501,551.2 750,551.2 L750,554.8000000000001 C501,554.8000000000001 501,583.7999999999998 252,583.7999999999998 Z" fill="#1868A8" fill-opacity="0.08" data-ei="4" data-ods="13" data-tip="Eixo 5 → ODS 13 · 1 fator"></path><path class="band" d="M252,597.8 C501,597.8 501,443.6 750,443.6 L750,465.20000000000005 C501,465.20000000000005 501,619.4 252,619.4 Z" fill="#158A8A" fill-opacity="0.72" data-ei="5" data-ods="11" data-tip="Eixo 6 → ODS 11 · 6 fatores"></path><path class="band" d="M252,619.3999999999999 C501,619.3999999999999 501,615.3999999999999 750,615.3999999999999 L750,629.7999999999998 C501,629.7999999999998 501,633.7999999999998 252,633.7999999999998 Z" fill="#158A8A" fill-opacity="0.08" data-ei="5" data-ods="16" data-tip="Eixo 6 → ODS 16 · 4 fatores"></path><path class="band" d="M252,633.8 C501,633.8 501,640.3999999999999 750,640.3999999999999 L750,647.5999999999999 C501,647.5999999999999 501,641 252,641 Z" fill="#158A8A" fill-opacity="0.08" data-ei="5" data-ods="17" data-tip="Eixo 6 → ODS 17 · 2 fatores"></path><g class="node" data-ei="0"><rect x="240" y="30.99999999999983" width="12" height="104.4" rx="2" fill="#F0871E"></rect><text x="230" y="81.19999999999983" text-anchor="end" font-size="13" font-weight="600">O Suor que não nos Sustenta</text><text class="lbl-m" x="230" y="97.19999999999983" text-anchor="end" font-size="11.5">Eixo 1 · 29</text></g><g class="node" data-ei="1"><rect x="240" y="149.39999999999984" width="12" height="136.8" rx="2" fill="#E2211C"></rect><text x="230" y="215.79999999999984" text-anchor="end" font-size="13" font-weight="600">A Vida em Risco</text><text class="lbl-m" x="230" y="231.79999999999984" text-anchor="end" font-size="11.5">Eixo 2 · 38</text></g><g class="node" data-ei="2"><rect x="240" y="300.1999999999999" width="12" height="64.8" rx="2" fill="#7A2C8E"></rect><text x="230" y="330.59999999999985" text-anchor="end" font-size="13" font-weight="600">Nossos Corpos Silenciados</text><text class="lbl-m" x="230" y="346.59999999999985" text-anchor="end" font-size="11.5">Eixo 3 · 18</text></g><g class="node" data-ei="3"><rect x="240" y="378.9999999999999" width="12" height="86.4" rx="2" fill="#4C9F38"></rect><text x="230" y="420.1999999999999" text-anchor="end" font-size="13" font-weight="600">A Terra de Quem?</text><text class="lbl-m" x="230" y="436.1999999999999" text-anchor="end" font-size="11.5">Eixo 4 · 24</text></g><g class="node" data-ei="4"><rect x="240" y="479.3999999999999" width="12" height="104.4" rx="2" fill="#1868A8"></rect><text x="230" y="529.5999999999999" text-anchor="end" font-size="13" font-weight="600">A Cidade Negada</text><text class="lbl-m" x="230" y="545.5999999999999" text-anchor="end" font-size="11.5">Eixo 5 · 29</text></g><g class="node" data-ei="5"><rect x="240" y="597.8" width="12" height="43.2" rx="2" fill="#158A8A"></rect><text x="230" y="617.4" text-anchor="end" font-size="13" font-weight="600">A Voz na Mesa</text><text class="lbl-m" x="230" y="633.4" text-anchor="end" font-size="11.5">Eixo 6 · 12</text></g><g class="node" data-ods="1"><rect x="750" y="10" width="12" height="10.8" rx="2" fill="#E5243B"></rect><text x="770" y="19.4" font-size="12.5"><tspan font-weight="700">1</tspan> <tspan class="lbl-m">Pobreza · 3</tspan></text></g><g class="node" data-ods="2"><rect x="750" y="27.8" width="12" height="25.2" rx="2" fill="#DDA63A"></rect><text x="770" y="44.4" font-size="12.5"><tspan font-weight="700">2</tspan> <tspan class="lbl-m">Fome zero · 7</tspan></text></g><g class="node" data-ods="3"><rect x="750" y="60" width="12" height="72" rx="2" fill="#4C9F38"></rect><text x="770" y="100" font-size="12.5"><tspan font-weight="700">3</tspan> <tspan class="lbl-m">Saúde · 20</tspan></text></g><g class="node" data-ods="4"><rect x="750" y="139" width="12" height="28.8" rx="2" fill="#C5192D"></rect><text x="770" y="157.4" font-size="12.5"><tspan font-weight="700">4</tspan> <tspan class="lbl-m">Educação · 8</tspan></text></g><g class="node" data-ods="5"><rect x="750" y="174.8" width="12" height="21.6" rx="2" fill="#FF3A21"></rect><text x="770" y="189.60000000000002" font-size="12.5"><tspan font-weight="700">5</tspan> <tspan class="lbl-m">Gênero · 6</tspan></text></g><g class="node" data-ods="6"><rect x="750" y="203.4" width="12" height="21.6" rx="2" fill="#26BDE2"></rect><text x="770" y="218.20000000000002" font-size="12.5"><tspan font-weight="700">6</tspan> <tspan class="lbl-m">Água e saneamento · 6</tspan></text></g><g class="node" data-ods="7"><rect x="750" y="232" width="12" height="7.2" rx="2" fill="#FCC30B"></rect><text x="770" y="239.6" font-size="12.5"><tspan font-weight="700">7</tspan> <tspan class="lbl-m">Energia · 2</tspan></text></g><g class="node" data-ods="8"><rect x="750" y="246.2" width="12" height="72" rx="2" fill="#A21942"></rect><text x="770" y="286.2" font-size="12.5"><tspan font-weight="700">8</tspan> <tspan class="lbl-m">Trabalho decente · 20</tspan></text></g><g class="node" data-ods="9"><rect x="750" y="325.2" width="12" height="25.2" rx="2" fill="#FD6925"></rect><text x="770" y="341.8" font-size="12.5"><tspan font-weight="700">9</tspan> <tspan class="lbl-m">Infraestrutura · 7</tspan></text></g><g class="node" data-ods="10"><rect x="750" y="357.4" width="12" height="28.8" rx="2" fill="#DD1367"></rect><text x="770" y="375.79999999999995" font-size="12.5"><tspan font-weight="700">10</tspan> <tspan class="lbl-m">Desigualdades · 8</tspan></text></g><g class="node" data-ods="11"><rect x="750" y="393.2" width="12" height="72" rx="2" fill="#FD9D24"></rect><text x="770" y="433.2" font-size="12.5"><tspan font-weight="700">11</tspan> <tspan class="lbl-m">Cidades · 20</tspan></text></g><g class="node" data-ods="12"><rect x="750" y="472.2" width="12" height="21.6" rx="2" fill="#BF8B2E"></rect><text x="770" y="487" font-size="12.5"><tspan font-weight="700">12</tspan> <tspan class="lbl-m">Consumo · 6</tspan></text></g><g class="node" data-ods="13"><rect x="750" y="500.8" width="12" height="54" rx="2" fill="#3F7E44"></rect><text x="770" y="531.8" font-size="12.5"><tspan font-weight="700">13</tspan> <tspan class="lbl-m">Clima · 15</tspan></text></g><g class="node" data-ods="14"><rect x="750" y="561.8" width="12" height="10.8" rx="2" fill="#0A97D9"></rect><text x="770" y="571.1999999999999" font-size="12.5"><tspan font-weight="700">14</tspan> <tspan class="lbl-m">Vida na água · 3</tspan></text></g><g class="node" data-ods="15"><rect x="750" y="579.5999999999999" width="12" height="28.8" rx="2" fill="#56C02B"></rect><text x="770" y="597.9999999999999" font-size="12.5"><tspan font-weight="700">15</tspan> <tspan class="lbl-m">Vida terrestre · 8</tspan></text></g><g class="node" data-ods="16"><rect x="750" y="615.3999999999999" width="12" height="14.4" rx="2" fill="#00689D"></rect><text x="770" y="626.5999999999999" font-size="12.5"><tspan font-weight="700">16</tspan> <tspan class="lbl-m">Instituições · 4</tspan></text></g><g class="node" data-ods="17"><rect x="750" y="636.7999999999998" width="12" height="10.8" rx="2" fill="#19486A"></rect><text x="770" y="646.1999999999998" font-size="12.5"><tspan font-weight="700">17</tspan> <tspan class="lbl-m">Parcerias · 3</tspan></text></g><g class="node" data-ods="18"><rect x="750" y="654.5999999999998" width="12" height="14.4" rx="2" fill="#7A4E2D"></rect><text x="770" y="665.7999999999998" font-size="12.5"><tspan font-weight="700">18</tspan> <tspan class="lbl-m">Étnico-racial · 4</tspan></text></g></svg></div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel" aria-label="Fatores selecionados">
+      <div class="ph" id="ph"><div class="kick"><span class="badge" style="background:#FD9D24">ODS 11</span>coluna da matriz</div><h2>Cidades e comunidades sustentáveis</h2><div class="sub">20 fatores · 4 eixos</div><div class="reading">Ponto de convergência: Eixo 2 (4), Eixo 4 (2), Eixo 5 (8), Eixo 6 (6). Intervenções sobre este ODS mobilizam fatores de 4 eixos.</div></div>
+      <div class="pb" id="pb"><div class="grp"><h3><span class="badge" style="background:#E2211C">Eixo 2</span>A Vida em Risco<span class="n">4</span></h3><details class="fat"><summary><span class="code">E2-F25</span><span class="nm">Qualidade do ar</span></summary><p>Controle da poluição atmosférica nas cidades. Evita doenças respiratórias e melhora o bem-estar.</p></details><details class="fat"><summary><span class="code">E2-F27</span><span class="nm">Segurança</span></summary><p>Policiamento e delegacias. Redução da violência e promoção da paz e proteção na comunidade.</p></details><details class="fat"><summary><span class="code">E2-F28</span><span class="nm">Violência</span></summary><p>Atos que machucam o corpo ou a mente das pessoas e que tiram a paz de toda a comunidade.</p></details><details class="fat"><summary><span class="code">E2-F29</span><span class="nm">Comunicação e gestão pós-desastre</span></summary><p>Avisar, organizar e ajudar as pessoas depois de um desastre, para que ninguém fique sem informação e socorro.</p></details></div><div class="grp"><h3><span class="badge" style="background:#4C9F38">Eixo 4</span>A Terra de Quem?<span class="n">2</span></h3><details class="fat"><summary><span class="code">E4-F05</span><span class="nm">Tecnologias sociais</span></summary><p>Soluções simples e baratas, criadas junto com a comunidade, para resolver problemas do dia a dia, como cisternas para guardar água da chuva.</p></details><details class="fat"><summary><span class="code">E4-F07</span><span class="nm">Construções sustentáveis e resilientes</span></summary><p>Edificações com menor impacto ambiental e mais resistência. Reduz emissões, consumo de energia e aumenta a segurança.</p></details></div><div class="grp"><h3><span class="badge" style="background:#1868A8">Eixo 5</span>A Cidade Negada<span class="n">8</span></h3><details class="fat"><summary><span class="code">E5-F22</span><span class="nm">Habitação</span></summary><p>Ter uma casa segura, com teto, paredes e em um lugar protegido para morar com a família.</p></details><details class="fat"><summary><span class="code">E5-F23</span><span class="nm">Transportes seguros</span></summary><p>Ônibus, trens e barcos que funcionem bem e que levem as pessoas aos lugares sem risco de acidentes.</p></details><details class="fat"><summary><span class="code">E5-F24</span><span class="nm">Urbanização e infraestrutura</span></summary><p>Planejamento urbano com acesso a serviços básicos. Melhora a qualidade de vida e reduz desigualdades territoriais.</p></details><details class="fat"><summary><span class="code">E5-F25</span><span class="nm">Equipamentos públicos de lazer e cultura seguros</span></summary><p>Praças, quadras e centros culturais bem cuidados e seguros para todos usarem.</p></details><details class="fat"><summary><span class="code">E5-F26</span><span class="nm">Esportes</span></summary><p>Acesso a atividades físicas e esportivas nos territórios. Promove saúde, inclusão e cidadania.</p></details><details class="fat"><summary><span class="code">E5-F27</span><span class="nm">Biblioteca</span></summary><p>Acesso a livros e, por meio deles, à leitura, à cultura e ao conhecimento. Contribui para a educação e inclusão cultural.</p></details><details class="fat"><summary><span class="code">E5-F28</span><span class="nm">Lazer</span></summary><p>Espaços e atividades para recreação e convívio social. Favorece saúde mental e relações comunitárias.</p></details><details class="fat"><summary><span class="code">E5-F30</span><span class="nm">Acesso a iluminação pública</span></summary><p>Ter postes de luz funcionando nas ruas, deixando os caminhos mais seguros à noite.</p></details></div><div class="grp"><h3><span class="badge" style="background:#158A8A">Eixo 6</span>A Voz na Mesa<span class="n">6</span></h3><details class="fat"><summary><span class="code">E6-F01</span><span class="nm">Associação de moradores e lideranças locais</span></summary><p>Grupos de vizinhos e pessoas de referência que se organizam para melhorar o bairro e defender a comunidade.</p></details><details class="fat"><summary><span class="code">E6-F02</span><span class="nm">Mobilização de redes e grupos organizados</span></summary><p>Juntar pessoas e grupos para agir em conjunto por uma causa da comunidade.</p></details><details class="fat"><summary><span class="code">E6-F03</span><span class="nm">Rádios comunitárias</span></summary><p>Rádios feitas pela própria comunidade, que informam e dão voz aos moradores da região.</p></details><details class="fat"><summary><span class="code">E6-F04</span><span class="nm">Parcerias entre instituições públicas, privadas e com a sociedade civil</span></summary><p>Quando governo, empresas e grupos da comunidade trabalham juntos para resolver problemas.</p></details><details class="fat"><summary><span class="code">E6-F05</span><span class="nm">Mutirão de limpeza</span></summary><p>Quando os moradores se juntam num dia para limpar ruas, rios e terrenos da comunidade.</p></details><details class="fat"><summary><span class="code">E6-F11</span><span class="nm">Comunicação comunitária – grupos de mensagens</span></summary><p>Grupos de celular, como os de WhatsApp, usados pelos moradores para avisar, informar e se ajudar.</p></details></div></div>
+    </aside>
+  </div>
+
+  <div class="findings" id="findings"><div class="finding"><b>Convergência</b><button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:11}">ODS 11 Cidades</button> e <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:13}">ODS 13 Clima</button> recebem fatores de 4 dos 6 eixos, os pontos de maior interdependência do guia.</div><div class="finding"><b>Exclusividade</b>6 ODS aparecem em um único eixo: <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:4}">4</button>, <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:7}">7</button>, <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:14}">14</button>, <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:15}">15</button>, <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:16}">16</button>, <button data-go="{&quot;type&quot;:&quot;ods&quot;,&quot;ods&quot;:18}">18</button>. São entradas temáticas sem articulação explícita com os demais eixos.</div><div class="finding"><b>Concentração</b><button data-go="{&quot;type&quot;:&quot;cell&quot;,&quot;ei&quot;:5,&quot;ods&quot;:11}">Eixo 6</button> tem 50% dos fatores no ODS 11; <button data-go="{&quot;type&quot;:&quot;cell&quot;,&quot;ei&quot;:0,&quot;ods&quot;:8}">Eixo 1</button> tem 48% dos fatores no ODS 08; <button data-go="{&quot;type&quot;:&quot;cell&quot;,&quot;ei&quot;:1,&quot;ods&quot;:3}">Eixo 2</button> tem 45% dos fatores no ODS 03.</div><div class="finding"><b>Amplitude</b><button data-go="{&quot;type&quot;:&quot;eixo&quot;,&quot;ei&quot;:3}">Eixo 4 · A Terra de Quem?</button> distribui seus fatores em 11 ODS, o eixo de maior transversalidade.</div></div>
+
+  <footer class="note">Dados extraídos do painel publicado (data.js), sem alteração de conteúdo. Cada fator está associado a um único ODS; a matriz conta fatores, não metas ODS. O ODS 18, Igualdade Étnico-Racial, integra a agenda brasileira e não consta da Agenda 2030 da ONU.</footer>
+</div>
+<div id="tip" hidden=""></div>
+
+<script>
+const EIXOS = [{"id":"Eixo 1","t":"O Suor que não nos Sustenta","f":"Trabalho, renda, economia solidária e agricultura familiar","c":"#F0871E","x":[["E1-F01","Cuidado com crianças e grupos vulneráveis","Atenção e proteção para crianças, idosos e outras pessoas que precisam de mais ajuda para viver com segurança.",1],["E1-F02","Alimentos","Ter comida que não faz mal à saúde e em quantidade que mate a fome todos os dias.",2],["E1-F03","Agricultura familiar","Plantações feitas por famílias, que são quem mais produz a comida que chega à nossa mesa.",2],["E1-F04","Produção de alimentos – hortas, hortos, quintais e outros que produzem alimentos","As pessoas plantam alimentos seguros, livres de venenos, como também plantas medicinais em pequenos espaços, como quintais, escolas ou terrenos comunitários.",2],["E1-F05","Produção orgânica","Alimentos plantados de forma natural, sem usar venenos para matar as pragas e os bichos no mato.",2],["E1-F06","Disponibilidade de alimentos","Ter comida suficiente para comprar ou colher na região, para que ninguém fique sem o que comer e nem pague caro pela comida.",2],["E1-F07","Trabalho de assistência e doméstico não remunerado","Tarefas como cuidar da casa, dos filhos ou de parentes doentes, feitas principalmente por mulheres sem receber por isso.",5],["E1-F08","Geração de emprego e renda","Criar novos postos de trabalho e chances para as pessoas ganharem dinheiro.",8],["E1-F09","Empreendedorismo solidário, criatividade e inovação","Apoio para quem quer abrir seu próprio negócio ou inventar um jeito novo de resolver um problema.",8],["E1-F10","Formalização de emprego (CLT, MEI, ECOSOL)","Ter a carteira de trabalho assinada ou a empresa legalizada para ter garantias como aposentadoria e auxílio-doença.",8],["E1-F11","Iniciativas de economia solidária","Formas de trabalho e produção em que as pessoas se unem para gerar renda de maneira coletiva, justa e igualitária.",8],["E1-F12","Disponibilidade de emprego","Existência de vagas de trabalho na região para quem quer e precisa trabalhar.",8],["E1-F13","Desemprego","Falta de trabalho para quem quer e precisa trabalhar. Aumenta a pobreza e os problemas sociais.",8],["E1-F14","Trabalho infantil","É quando obrigam as crianças a trabalhar, o que é proibido, e tira delas o tempo de brincar e estudar, mantendo elas na pobreza.",8],["E1-F15","Trabalho em condições análogas às de escravidão","É quando obrigam alguém a trabalhar sem liberdade e em condições muito ruins, o que é crime.",8],["E1-F16","Ambientes de trabalho seguros","Locais de trabalho sem riscos à saúde e com boas condições. Protege a vida e o bem-estar dos trabalhadores.",8],["E1-F17","Ações solidárias locais","Ajuda entre vizinhos e grupos da comunidade, como doação de alimentos e apoio a quem está passando dificuldade.",8],["E1-F18","Condições de trabalho","O jeito e o ambiente em que a pessoa trabalha: horários, segurança, salário e respeito no dia a dia.",8],["E1-F19","Promoção de políticas de investimento local","Apoiar projetos que fortaleçam a economia da comunidade.",8],["E1-F20","Acesso a serviços bancários","Permitir que todos possam ter conta, crédito e financiamento.",8],["E1-F21","Industrialização inclusiva e sustentável","Desenvolvimento da indústria com inclusão social e respeito ao meio ambiente.",9],["E1-F22","Crédito para micro, pequenas empresas e cooperativas","Empréstimo de dinheiro com juros baixos para ajudar o pequeno comerciante ou produtor a melhorar seu negócio.",9],["E1-F23","Atividades econômicas sustentáveis","Produção que respeita os limites ambientais. Garante crescimento sem comprometer os recursos naturais.",9],["E1-F24","Cobrança de preços abusivos por itens básicos","Quando cobram muito caro por coisas essenciais, como comida, água e remédios, principalmente em momentos de crise.",10],["E1-F25","Regulamentação e monitoramento dos mercados e instituições (monopólios e preço justo)","Regras que asseguram concorrência justa e preços acessíveis. Evita abusos econômicos e protege o consumidor.",10],["E1-F26","Sistemas sustentáveis de produção de alimentos","Produção e consumo de alimentos que respeitem o meio ambiente e garantam segurança alimentar.",12],["E1-F27","Economia circular","Modelo econômico baseado em reutilizar, renovar e reciclar.",12],["E1-F28","Trabalho informal","Trabalho sem vínculo empregatício, sem carteira de trabalho e sem direitos como férias, 13º, FGTS e INSS.",8],["E1-F29","Crédito para adaptação climática e reconstrução","Empréstimo de dinheiro para as pessoas se prepararem para os efeitos do clima ou reconstruírem o que perderam em desastres.",13]]},{"id":"Eixo 2","t":"A Vida em Risco","f":"Saúde, corpo político, saneamento e adoecimento social","c":"#E2211C","x":[["E2-F01","Área inundada","Lugar que fica coberto pela água quando o rio sobe ou a chuva é muito forte.",13],["E2-F02","Insegurança alimentar","É quando uma pessoa não consegue se alimentar bem, não consome os nutrientes de que o corpo precisa para crescer e se manter saudável.",2],["E2-F03","Mortalidade materna","Quando mulheres morrem durante a gravidez, parto ou logo depois.",3],["E2-F04","Mortalidade neonatal","Morte de bebês com até 28 dias de vida.",3],["E2-F05","Mortalidade infantil","Morte de crianças antes de completarem 1 ano.",3],["E2-F06","Doenças decorrentes de contaminação e poluição do ar, da água e do solo","Doenças causadas pela poluição, como problemas respiratórios, diarreias, vermes e outras intoxicações.",3],["E2-F07","Dengue","Doença causada por um vírus que o mosquito espalha, geralmente onde há acúmulo de água ou falta de limpeza.",3],["E2-F08","Doenças transmissíveis (AIDS, tuberculose, hanseníase, negligenciadas)","Doenças que passam de uma pessoa para outra, como a gripe ou a tuberculose.",3],["E2-F09","Doenças não transmissíveis (crônicas)","Doenças que não passam de uma pessoa para outra, como a pressão alta, o diabetes ou problemas do coração.",3],["E2-F10","Uso de drogas e álcool","Quando o uso de álcool, cigarro ou drogas prejudica a saúde do corpo, da mente e a convivência com os outros.",3],["E2-F11","Acidentes em estradas","Colisões, batidas e atropelamentos que causam ferimentos ou mortes.",3],["E2-F12","Saúde sexual e reprodutiva","Cuidados com o corpo, prevenção de doenças, acesso a absorvente, acesso a anticoncepcionais e o direito de decidir, com segurança, se quer ou não ter filhos.",3],["E2-F13","Acesso a medicamentos","Poder conseguir os remédios de que se precisa, de graça ou por um preço que dá para pagar.",3],["E2-F14","Cobertura vacinal","Quem precisa de vacina e consegue ser vacinado. Quantidade de pessoas que tomaram as vacinas. Quanto mais gente vacinada, mais protegida fica a comunidade.",3],["E2-F15","Serviços de saúde","Ter hospitais, postos de saúde, remédios e vacinas ao alcance de todos. Salva vidas e evita doenças.",3],["E2-F16","Profissionais de saúde","São todas as pessoas que trabalham cuidando da nossa saúde, como médicos, enfermeiros e agentes de saúde.",3],["E2-F17","Tornado/Vendaval","Ventos muito fortes que podem destruir casas, derrubar árvores e postes e machucar ou matar as pessoas.",13],["E2-F18","Saúde mental","Existe o cuidado com os sentimentos e com o pensamento para que a pessoa consiga viver e trabalhar bem.",3],["E2-F19","Saúde do idoso","Existe atendimento especial para quem é mais velho, garantindo que eles tenham saúde e autonomia.",3],["E2-F20","Acesso à água e saneamento","Ter água limpa na torneira e canos que levam a sujeira de casa embora para ser tratada, sem poluir os rios.",6],["E2-F21","Contaminação e poluição do ar, da água e do solo","Quando lixo, esgoto ou produtos tóxicos sujam a água, o solo ou o ar.",6],["E2-F22","Participação das comunidades locais na gestão da água e saneamento","Envolver os moradores nas decisões sobre o uso e cuidado da água e do esgoto.",6],["E2-F23","Gestão da água e saneamento","Controlar como a água é usada em casas, indústrias, plantações e evitar a falta. Garante água para todos, mesmo em tempos de seca.",6],["E2-F25","Qualidade do ar","Controle da poluição atmosférica nas cidades. Evita doenças respiratórias e melhora o bem-estar.",11],["E2-F26","Rota de fuga","Caminho seguro para as pessoas saírem rápido de um lugar em caso de perigo, como enchente ou deslizamento.",13],["E2-F27","Segurança","Policiamento e delegacias. Redução da violência e promoção da paz e proteção na comunidade.",11],["E2-F28","Violência","Atos que machucam o corpo ou a mente das pessoas e que tiram a paz de toda a comunidade.",11],["E2-F29","Comunicação e gestão pós-desastre","Avisar, organizar e ajudar as pessoas depois de um desastre, para que ninguém fique sem informação e socorro.",11],["E2-F30","Seca/Estiagem","Período longo sem chuva, que faz faltar água para beber, cozinhar e plantar.",13],["E2-F31","Acesso a serviços essenciais de energia, abastecimento de água, coleta de lixo etc.","Ter em casa os serviços básicos, como luz, água encanada e caminhão que recolhe o lixo.",6],["E2-F32","Gestão de riscos e emergências (defesa civil, bombeiros, brigadas e outros coletivos)","Trabalho da defesa civil, bombeiros e grupos da comunidade para evitar desastres e socorrer as pessoas quando algo acontece.",13],["E2-F33","Pontos de riscos e desastres no território","Locais onde há mais chance de enchentes, deslizamentos ou outras situações perigosas.",13],["E2-F34","Enchentes e alagamentos","Quando a chuva forte ou a cheia do rio faz a água invadir ruas e casas.",13],["E2-F35","Infestações e pragas (mosquito, carrapato, escorpião, animais peçonhentos etc.)","Quando bichos como mosquitos, escorpiões e carrapatos aparecem em grande quantidade e colocam a saúde das pessoas em risco.",3],["E2-F36","Pontos de deslizamento de terra","Lugares onde o barro e as pedras podem escorregar morro abaixo, principalmente quando chove muito.",13],["E2-F37","Sirenes e alertas de emergências","Sinais sonoros ou visuais para avisar que há um perigo iminente por perto e que você precisa se proteger rápido.",13],["E2-F38","Queimada/Incêndio","Fogo que se espalha no mato, em plantações ou em casas, destruindo a natureza e colocando vidas em perigo.",13],["E2-F39","Ponto de encontro em emergências","Lugar combinado onde as pessoas devem se reunir em segurança quando acontece um desastre.",13]]},{"id":"Eixo 3","t":"Nossos Corpos Silenciados","f":"Gênero, raça, direitos fundamentais e empoderamento","c":"#7A2C8E","x":[["E3-F01","Pobreza","É a falta de dinheiro e de condições básicas de vida, o que impede a pessoa de ter uma vida digna e boas oportunidades.",1],["E3-F02","Discriminação e violência contra mulheres e meninas","Tratar alguém mal ou de forma injusta pelo simples fato de ela ser mulher.",5],["E3-F03","Casamentos prematuros, forçados e de crianças","Quando adolescentes ou crianças são obrigados a casar contra a vontade ou antes de terem idade para decidir.",5],["E3-F04","Igualdade de oportunidades para promover o empoderamento das mulheres","Garantir que mulheres e homens tenham as mesmas chances na vida, no trabalho, na comunidade e na política.",5],["E3-F05","Propriedade e controle sobre a terra para as mulheres","Direito das mulheres de possuir e administrar terras e bens.",5],["E3-F06","Ação do Estado na coordenação e coerência de políticas para igualdade de gênero","Quando o governo cria e faz cumprir políticas que fazem com que as mulheres tenham as mesmas chances que os homens têm na vida, no trabalho, na comunidade e na política.",5],["E3-F07","Tráfico de pessoas","O crime de enganar ou levar pessoas para longe de casa para usá-las em trabalhos forçados ou exploração.",8],["E3-F08","Direitos fundamentais","Garantir que todos tenham o básico previsto em lei, como saúde, educação, moradia e documentos.",8],["E3-F09","Monitoramento dos vulneráveis (idosos, PCDs e crianças)","Acompanhar de perto idosos, crianças e pessoas com deficiência para garantir que estejam bem e protegidos.",10],["E3-F10","Empoderamento e inclusão social, econômica e política","Garantia de que todas as pessoas tenham voz, acesso a recursos e participação nas decisões.",10],["E3-F11","Acessibilidade e inclusão","Garantir que pessoas com deficiência possam entrar, circular e participar de tudo, sem barreiras.",10],["E3-F12","Serviços públicos e políticas de proteção social","É a ajuda que o governo dá, como postos de saúde e assistência social, para diminuir a situação de risco ou fragilidade das pessoas.",10],["E3-F13","Migração","Deslocamento de pessoas entre regiões ou países por trabalho, refúgio ou oportunidades.",10],["E3-F14","Acolhimento de vulneráveis e população em situação de rua","Oferecer abrigo, comida e cuidado para quem vive na rua ou está em situação de fragilidade.",10],["E3-F16","Discriminação racial","Tratar alguém mal ou de forma injusta por causa da cor da pele ou da sua origem.",18],["E3-F17","Racismo ambiental","Quando os problemas do meio ambiente, como lixo e enchentes, atingem mais os bairros onde vivem pessoas negras, indígenas e pobres.",18],["E3-F18","Igualdade racial","Garantir que negros, brancos e indígenas tenham as mesmas chances e sejam respeitados da mesma forma.",18],["E3-F19","Igualdade de direitos à propriedade e controle da terra (comunidades tradicionais e quilombolas)","Garantir que quilombolas, indígenas e outras comunidades tradicionais tenham o direito de possuir e cuidar das suas terras.",18]]},{"id":"Eixo 4","t":"A Terra de Quem?","f":"Soberania territorial, meio ambiente, biodiversidade e clima","c":"#4C9F38","x":[["E4-F01","Acesso a recursos financeiros para gestão, conservação sustentável da biodiversidade (investimentos públicos e privados)","Dinheiro de governos e empresas para ajudar a cuidar da natureza e da variedade de vida que existe nela e protegê-las.",1],["E4-F02","Gestão de bancos de sementes","É a prática de guardar e cuidar de sementes e mudas para manter a diversidade de alimentos e proteger espécies importantes.",2],["E4-F03","Plantas medicinais (uso e plantio)","Uso de ervas e plantas para tratar doenças ou aliviar sintomas. Valoriza saberes tradicionais e amplia formas de cuidado à saúde.",3],["E4-F04","Proteção e restauração de ecossistemas hídricos","Cuidar de rios, lagos e nascentes, que são fontes naturais de água.",6],["E4-F05","Tecnologias sociais","Soluções simples e baratas, criadas junto com a comunidade, para resolver problemas do dia a dia, como cisternas para guardar água da chuva.",11],["E4-F06","Pesquisa científica e inovação","Desenvolvimento de novos conhecimentos e tecnologias.",9],["E4-F07","Construções sustentáveis e resilientes","Edificações com menor impacto ambiental e mais resistência. Reduz emissões, consumo de energia e aumenta a segurança.",11],["E4-F08","Tecnologias ambientalmente corretas","Soluções tecnológicas que reduzem impactos ambientais e sociais.",12],["E4-F09","Acesso à informação de qualidade","Poder receber informações verdadeiras e fáceis de entender para tomar boas decisões e não ser enganado.",12],["E4-F10","Reconstruções sustentáveis e resilientes","Reconstruir o que foi destruído em desastres de um jeito mais forte e que respeite a natureza, para aguentar melhor os próximos eventos.",12],["E4-F11","Educação ambiental e para adaptação climática","Ensino e conscientização sobre os efeitos das mudanças climáticas e como enfrentá-las. Prepara comunidades para se adaptarem e evitarem riscos.",13],["E4-F12","Planejamento relacionado à mudança do clima e à gestão eficaz","Estratégias e políticas públicas voltadas para a resiliência climática. Garante respostas organizadas e sustentáveis aos desafios climáticos.",13],["E4-F13","Gerenciar e proteger os oceanos, mares e recursos marinhos de forma sustentável","Cuidar do mar e do que vive nele, usando seus recursos sem destruir, para que não faltem no futuro.",14],["E4-F14","Pesquisa científica e inovação para recuperação de ambientes","Estudos e novas ideias para ajudar a recuperar rios, matas e mares que foram destruídos.",14],["E4-F15","Pescadores artesanais","Trabalhadores que dependem da pesca tradicional e de pequena escala. Contribuem para a economia local e cultura costeira.",14],["E4-F16","Desmatamento e solos degradados","É a remoção da vegetação nativa e a perda de qualidade dos solos. Compromete a produção agrícola, a biodiversidade e os recursos hídricos.",15],["E4-F17","Gestão sustentável dos recursos naturais","É o uso racional dos recursos naturais, garantindo a conservação da biodiversidade.",15],["E4-F18","Conhecimentos e práticas tradicionais de conservação e uso sustentável","Valoriza saberes indígenas e comunitários sobre o uso sustentável dos recursos naturais.",15],["E4-F19","Hospital veterinário e resgate de animais","Locais e serviços que cuidam da saúde dos animais e os socorrem quando estão feridos ou abandonados.",15],["E4-F20","Tráfico de espécies da flora e fauna (caça e pesca ilegal)","Comércio ilegal de plantas e animais, muitas vezes ameaçados de extinção. Enfraquece os ecossistemas e ameaça a biodiversidade global.",15],["E4-F21","Espécies exóticas invasoras","Animais ou plantas introduzidos em novos ambientes que se proliferam descontroladamente.",15],["E4-F22","Gestão sustentável da biodiversidade para o desenvolvimento e redução da pobreza","Integração da conservação da natureza com o desenvolvimento econômico e social. Ajuda comunidades a gerarem renda de forma sustentável, promovendo bem-estar.",15],["E4-F24","Transferência de tecnologias ambientalmente corretas (acesso)","Fazer com que soluções e equipamentos que não agridem a natureza cheguem a quem precisa deles.",17],["E4-F25","Reflorestamento","Envolve ações para recuperar áreas degradadas e restaurar a cobertura vegetal original. Combate as mudanças climáticas e ajuda na preservação da fauna e flora locais.",15]]},{"id":"Eixo 5","t":"A Cidade Negada","f":"Infraestrutura, educação, cultura e território urbano-rural","c":"#1868A8","x":[["E5-F01","Disponibilidade a abrigos para emergências","Existência de lugares seguros para as pessoas ficarem quando precisam sair de casa por causa de um desastre.",13],["E5-F02","Vias obstruídas e danificadas – vias municipais, estaduais e federais","Ruas e estradas fechadas ou estragadas, que dificultam a passagem de pessoas, ônibus e do socorro.",3],["E5-F03","Acidentes no transporte de produtos perigosos","Quando caminhões que carregam combustível ou produtos químicos sofrem acidentes e colocam pessoas e natureza em risco.",3],["E5-F04","Educação – ensino primário","É o caminho de estudo que começa com o aprendizado de ler, escrever e fazer contas e ajuda a compreender o mundo.",4],["E5-F05","Educação técnica e profissional","São cursos que ensinam uma profissão e preparam para o mercado de trabalho.",4],["E5-F06","Educação superior","É a faculdade ou universidade, onde a pessoa se especializa em uma área do conhecimento.",4],["E5-F08","Educação pública","Escolas gratuitas mantidas pelo governo para que todos possam estudar sem pagar.",4],["E5-F09","Alfabetização – EJA","Ensino para jovens e adultos que não puderam estudar ou aprender a ler e escrever quando eram crianças.",4],["E5-F10","Formação em tecnologias sociais","Cursos que ensinam a criar e usar soluções simples e baratas para os problemas da comunidade.",4],["E5-F11","Bolsas de estudo","Ajuda em dinheiro para que o estudante consiga pagar o curso ou se manter estudando.",4],["E5-F12","Professores qualificados","Garantir que quem ensina nas escolas tenha o estudo e o preparo necessário para dar uma boa aula.",4],["E5-F13","Acesso aos serviços de energia","Garantir que todas as pessoas, inclusive nas áreas rurais ou isoladas, tenham eletricidade em casa, na escola, no hospital, etc.",7],["E5-F14","Serviços de energia modernos e sustentáveis","Ter luz em casa que venha de fontes que não agridem a natureza e com um preço que todos consigam pagar.",7],["E5-F15","Empreendimento com elevado risco de desastres","Fábricas, barragens ou outras obras que podem causar acidentes graves para as pessoas e a natureza ao redor.",8],["E5-F16","Educação para trabalho","Preparar as pessoas com conhecimentos para conseguir um emprego.",8],["E5-F17","Promoção de cultura","Valorização política e comunitária das manifestações culturais como música, arte e tradição.",8],["E5-F18","Acesso à cultura","Poder participar de festas, shows, teatro, museus e outras atividades culturais, perto de casa e sem custar caro.",8],["E5-F19","Sistema viário – vias municipais, estaduais e federais","Conjunto de ruas, estradas e rodovias que ligam cidades e regiões. Facilita o transporte de pessoas e produtos, impulsionando o comércio.",9],["E5-F20","Infraestrutura sustentável e resiliente","Estruturas físicas duráveis e adaptadas às mudanças climáticas. Reduz riscos de desastres e promove bem-estar.",9],["E5-F21","Tecnologias de informação e comunicação","São as ferramentas que usamos para nos conectar, como computadores, internet e celulares.",9],["E5-F22","Habitação","Ter uma casa segura, com teto, paredes e em um lugar protegido para morar com a família.",11],["E5-F23","Transportes seguros","Ônibus, trens e barcos que funcionem bem e que levem as pessoas aos lugares sem risco de acidentes.",11],["E5-F24","Urbanização e infraestrutura","Planejamento urbano com acesso a serviços básicos. Melhora a qualidade de vida e reduz desigualdades territoriais.",11],["E5-F25","Equipamentos públicos de lazer e cultura seguros","Praças, quadras e centros culturais bem cuidados e seguros para todos usarem.",11],["E5-F26","Esportes","Acesso a atividades físicas e esportivas nos territórios. Promove saúde, inclusão e cidadania.",11],["E5-F27","Biblioteca","Acesso a livros e, por meio deles, à leitura, à cultura e ao conhecimento. Contribui para a educação e inclusão cultural.",11],["E5-F28","Lazer","Espaços e atividades para recreação e convívio social. Favorece saúde mental e relações comunitárias.",11],["E5-F29","Valorização dos saberes e práticas locais","Reconhecer e dar valor ao que a comunidade sabe e faz, como receitas, festas, artesanato e modos de cuidar da terra.",12],["E5-F30","Acesso a iluminação pública","Ter postes de luz funcionando nas ruas, deixando os caminhos mais seguros à noite.",11]]},{"id":"Eixo 6","t":"A Voz na Mesa","f":"Participação social, governança, transparência e parcerias sociotécnicas","c":"#158A8A","x":[["E6-F01","Associação de moradores e lideranças locais","Grupos de vizinhos e pessoas de referência que se organizam para melhorar o bairro e defender a comunidade.",11],["E6-F02","Mobilização de redes e grupos organizados","Juntar pessoas e grupos para agir em conjunto por uma causa da comunidade.",11],["E6-F03","Rádios comunitárias","Rádios feitas pela própria comunidade, que informam e dão voz aos moradores da região.",11],["E6-F04","Parcerias entre instituições públicas, privadas e com a sociedade civil","Quando governo, empresas e grupos da comunidade trabalham juntos para resolver problemas.",11],["E6-F05","Mutirão de limpeza","Quando os moradores se juntam num dia para limpar ruas, rios e terrenos da comunidade.",11],["E6-F06","Combate ao crime organizado","Ações da polícia e da justiça contra grupos criminosos, como os que vendem drogas e armas.",16],["E6-F07","Participação social na tomada de decisão responsiva, inclusiva e participativa","Garantir que a população possa opinar e ajudar a decidir o que o governo faz na comunidade.",16],["E6-F08","Corrupção e suborno (em todos os níveis)","Roubar dinheiro público ou dar dinheiro para funcionários do governo para conseguir algo de forma errada.",16],["E6-F09","Instituições públicas e privadas em todos os níveis (transparência ativa)","Órgãos do governo e empresas que mostram com clareza o que fazem e como usam o dinheiro.",16],["E6-F11","Comunicação comunitária – grupos de mensagens","Grupos de celular, como os de WhatsApp, usados pelos moradores para avisar, informar e se ajudar.",11],["E6-F15","Grupos de escuta diários","Encontros ou canais onde as pessoas podem falar do que sentem e do que precisam, sendo ouvidas com frequência.",17],["E6-F16","Igrejas, grupos religiosos e outros coletivos que apoiam as situações de emergência","Igrejas e outros grupos que oferecem abrigo, comida e apoio às pessoas em momentos de desastre.",17]]}];
+const ODS = {
+ 1:["Erradicação da pobreza","Pobreza","#E5243B"],
+ 2:["Fome zero e agricultura sustentável","Fome zero","#DDA63A"],
+ 3:["Saúde e bem-estar","Saúde","#4C9F38"],
+ 4:["Educação de qualidade","Educação","#C5192D"],
+ 5:["Igualdade de gênero","Gênero","#FF3A21"],
+ 6:["Água potável e saneamento","Água e saneamento","#26BDE2"],
+ 7:["Energia limpa e acessível","Energia","#FCC30B"],
+ 8:["Trabalho decente e crescimento econômico","Trabalho decente","#A21942"],
+ 9:["Indústria, inovação e infraestrutura","Infraestrutura","#FD6925"],
+ 10:["Redução das desigualdades","Desigualdades","#DD1367"],
+ 11:["Cidades e comunidades sustentáveis","Cidades","#FD9D24"],
+ 12:["Consumo e produção responsáveis","Consumo","#BF8B2E"],
+ 13:["Ação contra a mudança global do clima","Clima","#3F7E44"],
+ 14:["Vida na água","Vida na água","#0A97D9"],
+ 15:["Vida terrestre","Vida terrestre","#56C02B"],
+ 16:["Paz, justiça e instituições eficazes","Instituições","#00689D"],
+ 17:["Parcerias e meios de implementação","Parcerias","#19486A"],
+ 18:["Igualdade étnico-racial","Étnico-racial","#7A4E2D"]
+};
+const ODSK = Object.keys(ODS).map(Number);
+const FAT = EIXOS.flatMap((e,i)=>e.x.map(f=>({cod:f[0],nome:f[1],def:f[2],ods:f[3],ei:i})));
+const cnt = (ei,o)=>FAT.filter(f=>f.ei===ei&&f.ods===o).length;
+const M = EIXOS.map((_,i)=>ODSK.map(o=>cnt(i,o)));
+const MAX = Math.max(...M.flat());
+const nE = i=>EIXOS[i].x.length;
+const odsN = o=>FAT.filter(f=>f.ods===o).length;
+const odsE = o=>EIXOS.filter((_,i)=>M[i][ODSK.indexOf(o)]>0).length;
+const pct = (a,b)=>Math.round(100*a/b)+'%';
+const esc = s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const norm = s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const odsNum = o=>'ODS '+String(o).padStart(2,'0');
+
+let state = {sel:{type:'ods',ods:11}, view:'matriz', q:'', flowEixo:null};
+
+/* ---------- busca ---------- */
+function match(f){ if(!state.q) return true; const q=norm(state.q); return norm(f.nome).includes(q)||norm(f.def).includes(q)||f.cod.toLowerCase().includes(q); }
+
+/* ---------- síntese ---------- */
+function renderStats(){
+  const total = FAT.length;
+  const shared = ODSK.filter(o=>odsE(o)>=3).length;
+  const eName = (e,i)=>`Eixo ${i+1} · ${e.t}`;
+  const bar = EIXOS.map((e,i)=>`<i style="flex:${nE(i)};background:${e.c}" title="${esc(eName(e,i))}: ${nE(i)} fatores"></i>`).join('');
+  const eixos = EIXOS.map((e,i)=>`<i style="background:${e.c}" title="${esc(eName(e,i))}">${i+1}</i>`).join('');
+  const tiles = ODSK.map(o=>`<i style="background:${ODS[o][2]}" title="${odsNum(o)} · ${esc(ODS[o][0])}">${o}</i>`).join('');
+  const cols = ODSK.map(o=>{const n=odsE(o), on=n>=3;
+    return `<i class="${on?'on':''}" style="height:${(n/EIXOS.length*100).toFixed(1)}%;${on?'background:'+ODS[o][2]:''}" title="${odsNum(o)} · ${esc(ODS[o][1])}: ${n} de ${EIXOS.length} eixos"></i>`;}).join('');
+  document.getElementById('stats').innerHTML = `
+    <div class="kpi"><div class="kpi-h"><b>${total}</b><span>fatores</span></div>
+      <div class="kpi-bar">${bar}</div><small>distribuídos entre os eixos</small></div>
+    <div class="kpi"><div class="kpi-h"><b>${EIXOS.length}</b><span>eixos estratégicos</span></div>
+      <div class="kpi-dots">${eixos}</div></div>
+    <div class="kpi"><div class="kpi-h"><b>${ODSK.length}</b><span>ODS mobilizados</span></div>
+      <div class="kpi-tiles">${tiles}</div></div>
+    <div class="kpi"><div class="kpi-h"><b>${shared}</b><span>ODS compartilhados por 3 ou mais eixos</span></div>
+      <div class="kpi-cols"><em></em>${cols}</div><small>altura = nº de eixos por ODS · linha = 3 eixos</small></div>`;
+  document.getElementById('ramp').innerHTML=[.2,.4,.6,.8,1].map(a=>`<i style="opacity:${a}"></i>`).join('');
+}
+
+/* ---------- matriz ---------- */
+function alphaHex(a){return Math.round(a*255).toString(16).padStart(2,'0')}
+function renderMatrix(){
+  const s=state.sel, el=document.getElementById('matrix');
+  let h=`<div class="corner">eixo ↓ · ODS →</div>`;
+  ODSK.forEach(o=>{
+    const sel = s.type==='ods'&&s.ods===o;
+    h+=`<div class="mh${sel?' sel':''}" data-ods="${o}" title="${odsNum(o)} · ${ODS[o][0]}"><span class="sq" style="background:${ODS[o][2]}">${o}</span><span class="vl">${ODS[o][1]}</span></div>`;
+  });
+  h+=`<div class="corner" style="justify-content:center;padding-right:0">total</div>`;
+  EIXOS.forEach((e,i)=>{
+    const rs = s.type==='eixo'&&s.ei===i;
+    h+=`<div class="rl${rs?' sel':''}" data-ei="${i}"><span class="dot" style="background:${e.c}"></span><span><span class="c">${e.id.toUpperCase()}</span><span class="t">${esc(e.t)}</span></span></div>`;
+    ODSK.forEach((o,j)=>{
+      const n=M[i][j];
+      if(!n){h+=`<div class="cell z"></div>`;return;}
+      const m = state.q ? FAT.filter(f=>f.ei===i&&f.ods===o&&match(f)).length : n;
+      const a = .18 + .82*(n/MAX);
+      const dark = a>.5;
+      const isSel = s.type==='cell'&&s.ei===i&&s.ods===o;
+      h+=`<div class="cell${isSel?' sel':''}${state.q&&!m?' dim':''}" data-ei="${i}" data-ods="${o}" style="background:${e.c}${alphaHex(a*getA())};color:${dark?'#fff':'var(--fg)'}" title="${e.id} × ${odsNum(o)}: ${n} fator${n>1?'es':''}">${n}${state.q&&m?`<span class="m">${m}</span>`:''}</div>`;
+    });
+    h+=`<div class="tot">${nE(i)}</div>`;
+  });
+  h+=`<div class="foot-l">Eixos que mobilizam o ODS</div>`;
+  ODSK.forEach((o,j)=>{
+    const pips = EIXOS.map((e,i)=>M[i][j]?`<span class="pip" style="background:${e.c}"></span>`:'').join('');
+    h+=`<div class="foot"><span class="n">${odsE(o)}</span><span class="pips">${pips}</span></div>`;
+  });
+  h+=`<div class="foot" style="justify-content:flex-start"><span class="n">${FAT.length}</span></div>`;
+  el.innerHTML=h;
+}
+function getA(){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellA'))||.9}
+
+/* ---------- fluxo ---------- */
+const SVGNS='http://www.w3.org/2000/svg';
+function renderFlowBar(){
+  const fb=document.getElementById('flowbar');
+  let h=`<span>Detalhar eixo:</span><button class="chip" aria-pressed="${state.flowEixo===null}" data-fe="-1">Visão geral</button>`;
+  EIXOS.forEach((e,i)=>h+=`<button class="chip" aria-pressed="${state.flowEixo===i}" data-fe="${i}"><span class="dot" style="background:${e.c}"></span>${e.id}</button>`);
+  fb.innerHTML=h;
+}
+function ribbon(x0,y0a,y0b,x1,y1a,y1b){
+  const mx=(x0+x1)/2;
+  return `M${x0},${y0a} C${mx},${y0a} ${mx},${y1a} ${x1},${y1a} L${x1},${y1b} C${mx},${y1b} ${mx},${y0b} ${x0},${y0b} Z`;
+}
+function renderFlow(){
+  renderFlowBar();
+  const svg=document.getElementById('flow');
+  if(state.flowEixo===null) flowOverview(svg); else flowEixo(svg,state.flowEixo);
+}
+function flowOverview(svg){
+  const W=960, unit=3.6, gapL=14, gapR=7, top=10;
+  const xL=240, xR=W-210, nw=12;
+  let y=top; const L=EIXOS.map((e,i)=>{const h=nE(i)*unit; const n={i,y,h}; y+=h+gapL; return n;});
+  const H1=y;
+  y=top; const R={}; ODSK.forEach(o=>{const h=odsN(o)*unit; R[o]={y,h}; y+=h+gapR;});
+  const H=Math.max(H1,y)+10;
+  const offL=EIXOS.map(()=>0), offR={}; ODSK.forEach(o=>offR[o]=0);
+  // centralizar coluna menor
+  const shiftL=(H-10-H1)/2, shiftR=(H-10-y)/2;
+  let g='';
+  const s=state.sel;
+  EIXOS.forEach((e,i)=>ODSK.forEach((o,j)=>{
+    const n=M[i][j]; if(!n) return;
+    const h=n*unit;
+    const ya=L[i].y+offL[i]+shiftL, yb=R[o].y+offR[o]+shiftR;
+    offL[i]+=h; offR[o]+=h;
+    const m = state.q ? FAT.filter(f=>f.ei===i&&f.ods===o&&match(f)).length : n;
+    let op=.42;
+    if(s.type==='eixo') op = s.ei===i?.72:.08;
+    else if(s.type==='ods') op = s.ods===o?.72:.08;
+    else if(s.type==='cell') op = (s.ei===i&&s.ods===o)?.85:.08;
+    if(state.q && !m) op=.05;
+    g+=`<path class="band" d="${ribbon(xL+nw,ya,ya+h,xR,yb,yb+h)}" fill="${e.c}" fill-opacity="${op}" data-ei="${i}" data-ods="${o}" data-tip="${e.id} → ${odsNum(o)} · ${n} fator${n>1?'es':''}"/>`;
+  }));
+  EIXOS.forEach((e,i)=>{
+    const yy=L[i].y+shiftL;
+    g+=`<g class="node" data-ei="${i}"><rect x="${xL}" y="${yy}" width="${nw}" height="${L[i].h}" rx="2" fill="${e.c}"/>`+
+       `<text x="${xL-10}" y="${yy+L[i].h/2-2}" text-anchor="end" font-size="13" font-weight="600">${esc(e.t)}</text>`+
+       `<text class="lbl-m" x="${xL-10}" y="${yy+L[i].h/2+14}" text-anchor="end" font-size="11.5">${e.id} · ${nE(i)}</text></g>`;
+  });
+  ODSK.forEach(o=>{
+    const yy=R[o].y+shiftR, hh=R[o].h;
+    g+=`<g class="node" data-ods="${o}"><rect x="${xR}" y="${yy}" width="${nw}" height="${hh}" rx="2" fill="${ODS[o][2]}"/>`+
+       `<text x="${xR+nw+8}" y="${yy+hh/2+4}" font-size="12.5"><tspan font-weight="700">${o}</tspan> <tspan class="lbl-m">${ODS[o][1]} · ${odsN(o)}</tspan></text></g>`;
+  });
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML=g;
+}
+function flowEixo(svg,ei){
+  const e=EIXOS[ei];
+  const fs=FAT.filter(f=>f.ei===ei).sort((a,b)=>a.ods-b.ods||a.cod.localeCompare(b.cod));
+  const W=960, row=21, top=10, xE=60, xF=300, xO=W-180, nw=10;
+  const H=fs.length*row+top*2;
+  const odsList=[...new Set(fs.map(f=>f.ods))];
+  const oh={}; let gapO=10;
+  const totalO = fs.length*row - gapO*(odsList.length-1);
+  let y=top; odsList.forEach(o=>{const n=fs.filter(f=>f.ods===o).length; const h=n*row-gapO+gapO*(odsList.length-1)/odsList.length*0; oh[o]={y,h:n*(totalO/fs.length)}; y+=n*(totalO/fs.length)+gapO;});
+  let g='';
+  const eh=fs.length*row;
+  // eixo -> fatores
+  fs.forEach((f,k)=>{
+    const yf=top+k*row+row/2;
+    const ya=top+k*(eh/fs.length);
+    const hit=match(f);
+    g+=`<path class="band" d="${ribbon(xE+nw,ya,ya+eh/fs.length,xF-6,yf-3,yf+3)}" fill="${e.c}" fill-opacity="${hit?.35:.06}"/>`;
+  });
+  const offO={}; odsList.forEach(o=>offO[o]=0);
+  fs.forEach((f,k)=>{
+    const yf=top+k*row+row/2;
+    const per=totalO/fs.length;
+    const yo=oh[f.ods].y+offO[f.ods]; offO[f.ods]+=per;
+    const hit=match(f);
+    const s=state.sel; let op=hit?.45:.06;
+    if(s.type==='cell'&&s.ei===ei) op = s.ods===f.ods&&hit?.8:.08;
+    g+=`<path class="band" d="${ribbon(xF+236,yf-3,yf+3,xO,yo,yo+per)}" fill="${ODS[f.ods][2]}" fill-opacity="${op}" data-ei="${ei}" data-ods="${f.ods}" data-tip="${f.cod} → ${odsNum(f.ods)}"/>`;
+  });
+  g+=`<g class="node" data-ei="${ei}"><rect x="${xE}" y="${top}" width="${nw}" height="${eh}" rx="2" fill="${e.c}"/>`+
+     `<text x="${xE-8}" y="${top+eh/2}" text-anchor="end" font-size="12" font-weight="700" transform="rotate(-90 ${xE-8} ${top+eh/2})" style="text-anchor:middle">${e.id} · ${esc(e.t)}</text></g>`;
+  fs.forEach((f,k)=>{
+    const yf=top+k*row+row/2; const hit=match(f);
+    const nm=f.nome.length>36?f.nome.slice(0,35)+'…':f.nome;
+    g+=`<g class="node" data-ei="${ei}" data-ods="${f.ods}" data-tip="${esc(f.nome)}"><rect x="${xF-6}" y="${yf-3}" width="6" height="6" rx="3" fill="${e.c}"/>`+
+       `<text x="${xF+4}" y="${yf+4}" font-size="12" ${hit?'':'opacity=".3"'}>${esc(nm)}</text></g>`;
+  });
+  odsList.forEach(o=>{
+    g+=`<g class="node" data-ods="${o}"><rect x="${xO}" y="${oh[o].y}" width="${nw}" height="${oh[o].h}" rx="2" fill="${ODS[o][2]}"/>`+
+       `<text x="${xO+nw+8}" y="${oh[o].y+oh[o].h/2+4}" font-size="12.5"><tspan font-weight="700">${o}</tspan> <tspan class="lbl-m">${ODS[o][1]}</tspan></text></g>`;
+  });
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML=g;
+}
+
+/* ---------- painel ---------- */
+function fatItem(f,showEixo){
+  const e=EIXOS[f.ei], hit=state.q&&match(f);
+  return `<details class="fat${hit?' hit':''}"><summary><span class="code">${f.cod}</span><span class="nm">${esc(f.nome)}</span></summary><p>${esc(f.def)}${showEixo?'':''}</p></details>`;
+}
+function groupBlock(title,color,list,showEixo){
+  return `<div class="grp"><h3><span class="badge" style="background:${color}">${title.split('|')[0]}</span>${title.split('|')[1]||''}<span class="n">${list.length}</span></h3>${list.map(f=>fatItem(f,showEixo)).join('')}</div>`;
+}
+function renderPanel(){
+  const s=state.sel, ph=document.getElementById('ph'), pb=document.getElementById('pb');
+  let list, head='', body='';
+  if(s.type==='ods'){
+    const o=s.ods; list=FAT.filter(f=>f.ods===o&&match(f));
+    const eixos=EIXOS.map((e,i)=>({e,i,n:M[i][ODSK.indexOf(o)]})).filter(x=>x.n);
+    head=`<div class="kick"><span class="badge" style="background:${ODS[o][2]}">${odsNum(o)}</span>coluna da matriz</div><h2>${ODS[o][0]}</h2><div class="sub">${odsN(o)} fatores · ${eixos.length} eixo${eixos.length>1?'s':''}</div>`+
+      `<div class="reading">${eixos.length>1?`Ponto de convergência: ${eixos.map(x=>`${x.e.id} (${x.n})`).join(', ')}. Intervenções sobre este ODS mobilizam fatores de ${eixos.length} eixos.`:`Exclusivo do ${eixos[0].e.id}: nenhum outro eixo mobiliza este ODS.`}</div>`;
+    body=eixos.map(x=>{const l=FAT.filter(f=>f.ei===x.i&&f.ods===o&&match(f)); return l.length?groupBlock(`${x.e.id}|${esc(x.e.t)}`,x.e.c,l,false):'';}).join('');
+  } else if(s.type==='eixo'){
+    const e=EIXOS[s.ei]; list=FAT.filter(f=>f.ei===s.ei&&match(f));
+    const row=M[s.ei].map((n,j)=>({o:ODSK[j],n})).filter(x=>x.n).sort((a,b)=>b.n-a.n);
+    const top=row[0];
+    head=`<div class="kick"><span class="badge" style="background:${e.c}">${e.id}</span>linha da matriz</div><h2>${esc(e.t)}</h2><div class="sub">${esc(e.f)}</div>`+
+      `<div class="reading">${nE(s.ei)} fatores distribuídos em ${row.length} ODS. Concentração principal no ${odsNum(top.o)} (${top.n} fatores, ${pct(top.n,nE(s.ei))}).</div>`;
+    body=row.sort((a,b)=>a.o-b.o).map(x=>{const l=FAT.filter(f=>f.ei===s.ei&&f.ods===x.o&&match(f)); return l.length?groupBlock(`${odsNum(x.o)}|${ODS[x.o][1]}`,ODS[x.o][2],l,true):'';}).join('');
+  } else {
+    const e=EIXOS[s.ei], o=s.ods; list=FAT.filter(f=>f.ei===s.ei&&f.ods===o&&match(f));
+    const n=M[s.ei][ODSK.indexOf(o)];
+    head=`<div class="kick"><span class="badge" style="background:${e.c}">${e.id}</span>×<span class="badge" style="background:${ODS[o][2]}">${odsNum(o)}</span></div><h2>${esc(e.t)} · ${ODS[o][1]}</h2><div class="sub">${n} de ${nE(s.ei)} fatores do eixo (${pct(n,nE(s.ei))}) · ${n} de ${odsN(o)} fatores do ODS (${pct(n,odsN(o))})</div>`;
+    body=list.map(f=>fatItem(f,false)).join('');
+  }
+  if(!list.length) body=`<div class="empty">Nenhum fator desta seleção corresponde à busca. Limpe o campo de busca para ver todos.</div>`;
+  ph.innerHTML=head; pb.innerHTML=body; pb.scrollTop=0;
+}
+
+/* ---------- achados ---------- */
+function renderFindings(){
+  const byE=ODSK.map(o=>({o,e:odsE(o)})).sort((a,b)=>b.e-a.e);
+  const maxE=byE[0].e, topShared=byE.filter(x=>x.e===maxE).map(x=>x.o);
+  const excl=ODSK.filter(o=>odsE(o)===1);
+  const conc=EIXOS.map((e,i)=>{const mx=Math.max(...M[i]); return {i,mx,o:ODSK[M[i].indexOf(mx)],p:mx/nE(i)};}).sort((a,b)=>b.p-a.p);
+  const disp=EIXOS.map((e,i)=>({i,k:M[i].filter(Boolean).length})).sort((a,b)=>b.k-a.k)[0];
+  const lnk=(t,a)=>`<button data-go='${JSON.stringify(a)}'>${t}</button>`;
+  document.getElementById('findings').innerHTML=
+   `<div class="finding"><b>Convergência</b>${topShared.map(o=>lnk(odsNum(o)+' '+ODS[o][1],{type:'ods',ods:o})).join(' e ')} recebem fatores de ${maxE} dos 6 eixos, os pontos de maior interdependência do guia.</div>`+
+   `<div class="finding"><b>Exclusividade</b>${excl.length} ODS aparecem em um único eixo: ${excl.map(o=>lnk(String(o),{type:'ods',ods:o})).join(', ')}. São entradas temáticas sem articulação explícita com os demais eixos.</div>`+
+   `<div class="finding"><b>Concentração</b>${conc.slice(0,3).map(c=>lnk(EIXOS[c.i].id,{type:'cell',ei:c.i,ods:c.o})+` tem ${pct(c.mx,nE(c.i))} dos fatores no ${odsNum(c.o)}`).join('; ')}.</div>`+
+   `<div class="finding"><b>Amplitude</b>${lnk(EIXOS[disp.i].id+' · '+EIXOS[disp.i].t,{type:'eixo',ei:disp.i})} distribui seus fatores em ${disp.k} ODS, o eixo de maior transversalidade.</div>`;
+}
+
+/* ---------- interação ---------- */
+function select(sel){ state.sel=sel; renderAll(); }
+function renderAll(){
+  if(state.view==='matriz') renderMatrix(); else renderFlow();
+  renderPanel();
+  const qi=document.getElementById('qinfo');
+  if(state.q){const n=FAT.filter(match).length; qi.textContent=`${n} fator${n!==1?'es':''} encontrado${n!==1?'s':''}`;} else qi.textContent='';
+}
+function setView(v){
+  state.view=v;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));
+  document.getElementById('v-matriz').hidden=v!=='matriz';
+  document.getElementById('v-fluxo').hidden=v!=='fluxo';
+  renderAll();
+}
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; location.hash=b.dataset.v;});
+window.addEventListener('hashchange',()=>setView(location.hash==='#fluxo'?'fluxo':'matriz'));
+document.getElementById('matrix').addEventListener('click',ev=>{
+  const c=ev.target.closest('.cell:not(.z)'), r=ev.target.closest('.rl'), h=ev.target.closest('.mh');
+  if(c) select({type:'cell',ei:+c.dataset.ei,ods:+c.dataset.ods});
+  else if(r) select({type:'eixo',ei:+r.dataset.ei});
+  else if(h) select({type:'ods',ods:+h.dataset.ods});
+});
+document.getElementById('flowbar').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-fe]'); if(!b) return;
+  const v=+b.dataset.fe; state.flowEixo=v<0?null:v;
+  if(v>=0) state.sel={type:'eixo',ei:v};
+  renderAll();
+});
+const flow=document.getElementById('flow');
+flow.addEventListener('click',ev=>{
+  const t=ev.target.closest('[data-ei],[data-ods]'); if(!t) return;
+  const ei=t.dataset.ei, o=t.dataset.ods;
+  if(ei!==undefined&&o!==undefined) select({type:'cell',ei:+ei,ods:+o});
+  else if(ei!==undefined){ state.flowEixo=+ei; select({type:'eixo',ei:+ei}); }
+  else select({type:'ods',ods:+o});
+});
+const tip=document.getElementById('tip');
+flow.addEventListener('mousemove',ev=>{
+  const t=ev.target.closest('[data-tip]');
+  if(!t){tip.hidden=true;return;}
+  tip.textContent=t.dataset.tip; tip.hidden=false;
+  tip.style.left=Math.min(ev.clientX+14,innerWidth-270)+'px'; tip.style.top=(ev.clientY+14)+'px';
+});
+flow.addEventListener('mouseleave',()=>tip.hidden=true);
+document.getElementById('findings').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-go]'); if(!b) return;
+  select(JSON.parse(b.dataset.go));
+  document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'start'});
+});
+let qt; document.getElementById('q').addEventListener('input',ev=>{clearTimeout(qt); qt=setTimeout(()=>{state.q=ev.target.value.trim(); renderAll();},120);});
+if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>renderAll());
+new MutationObserver(()=>renderAll()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+renderStats(); renderFindings();
+setView(location.hash==='#fluxo'?'fluxo':'matriz');
+</script>
+
+
+
+</body></html>
