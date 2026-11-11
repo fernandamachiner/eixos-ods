@@ -146,7 +146,7 @@ h1{font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:-.02em;margin
   header.top{padding:22px 18px 20px;border-radius:14px}
   .compare{align-self:flex-start}
 }
-.stats{display:grid;grid-template-columns:1.15fr .85fr 1fr 1.2fr;gap:0;margin:16px 0 22px;padding:0;background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(15,40,45,.04),0 8px 24px -14px rgba(15,40,45,.12)}
+.stats{display:grid;grid-template-columns:1.15fr .85fr 1.3fr;gap:0;margin:16px 0 22px;padding:0;background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(15,40,45,.04),0 8px 24px -14px rgba(15,40,45,.12)}
 .stats .kpi{display:flex;flex-direction:column;gap:12px;padding:18px 20px 16px;min-width:0;border-left:1px solid var(--line-soft)}
 .stats .kpi:first-child{border-left:0}
 .stats .kpi-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -164,7 +164,7 @@ h1{font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:-.02em;margin
 .stats .kpi-cols i{flex:1;min-height:3px;border-radius:2px 2px 0 0;background:var(--empty);cursor:default}
 .stats .kpi-cols em{position:absolute;left:0;right:0;bottom:50%;border-top:1px dashed var(--faint);pointer-events:none}
 .stats .kpi-dots i:hover,.stats .kpi-tiles i:hover,.stats .kpi-cols i:hover{filter:brightness(1.12)}
-@media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.stats .kpi:nth-child(3){border-left:0}.stats .kpi:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+@media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.stats .kpi:nth-child(3){border-left:0;grid-column:1/-1}.stats .kpi:nth-child(3) .kpi-tiles{max-width:420px}.stats .kpi:nth-child(n+3){border-top:1px solid var(--line-soft)}}
 @media (max-width:520px){.stats{grid-template-columns:1fr}.stats .kpi{border-left:0}.stats .kpi+.kpi{border-top:1px solid var(--line-soft)}}
 .top .subtitle{margin:4px 0 0;font-size:1rem;font-weight:400;opacity:.75}
 </style>
@@ -264,22 +264,17 @@ function match(f){ if(!state.q) return true; const q=norm(state.q); return norm(
 /* ---------- síntese ---------- */
 function renderStats(){
   const total = FAT.length;
-  const shared = ODSK.filter(o=>odsE(o)>=3).length;
   const eName = (e,i)=>`Eixo ${i+1} · ${e.t}`;
   const bar = EIXOS.map((e,i)=>`<i style="flex:${nE(i)};background:${e.c}" title="${esc(eName(e,i))}: ${nE(i)} fatores"></i>`).join('');
   const eixos = EIXOS.map((e,i)=>`<i style="background:${e.c}" title="${esc(eName(e,i))}">${i+1}</i>`).join('');
   const tiles = ODSK.map(o=>`<i style="background:${ODS[o][2]}" title="${odsNum(o)} · ${esc(ODS[o][0])}">${o}</i>`).join('');
-  const cols = ODSK.map(o=>{const n=odsE(o), on=n>=3;
-    return `<i class="${on?'on':''}" style="height:${(n/EIXOS.length*100).toFixed(1)}%;${on?'background:'+ODS[o][2]:''}" title="${odsNum(o)} · ${esc(ODS[o][1])}: ${n} de ${EIXOS.length} eixos"></i>`;}).join('');
   document.getElementById('stats').innerHTML = `
     <div class="kpi"><div class="kpi-h"><b>${total}</b><span>fatores</span></div>
       <div class="kpi-bar">${bar}</div><small>distribuídos entre os eixos</small></div>
     <div class="kpi"><div class="kpi-h"><b>${EIXOS.length}</b><span>eixos estratégicos</span></div>
       <div class="kpi-dots">${eixos}</div></div>
     <div class="kpi"><div class="kpi-h"><b>${ODSK.length}</b><span>ODS mobilizados</span></div>
-      <div class="kpi-tiles">${tiles}</div></div>
-    <div class="kpi"><div class="kpi-h"><b>${shared}</b><span>ODS compartilhados por 3 ou mais eixos</span></div>
-      <div class="kpi-cols"><em></em>${cols}</div><small>altura = nº de eixos por ODS · linha = 3 eixos</small></div>`;
+      <div class="kpi-tiles">${tiles}</div></div>`;
   document.getElementById('ramp').innerHTML=[.2,.4,.6,.8,1].map(a=>`<i style="opacity:${a}"></i>`).join('');
 }
 
